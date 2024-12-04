@@ -140,8 +140,8 @@ def assign_helper_alignment(slot_indices, event_index, DEBUG=False):
             if DEBUG:
                 print("Cannot assign game to Friday slot")
             return False
-        # Friday practices are 120 mins TODO not hour aligned? 
-        elif not len(slot_indices) == 4 or not slot_indices[0] % 4 == 0:
+        # Friday practices are 120 mins and aligned starting 8:00 on Friday TODO not hour aligned? 
+        elif not len(slot_indices) == 4 or not (slot_indices[0]-(SLOTS_PER_DAY*2)) % 4 == 0:
             if DEBUG:
                 print("Failed Friday practice alignment. ")
             return False
@@ -183,17 +183,29 @@ def assign_helper_incompatible(event_index, schedule):
     return True
 
 def assign_helper_game_prac_overlap(slots_indices, event_index, schedule, DEBUG=False):
+    if DEBUG:
+        print("Game/Prac overlap, slots:", slots_indices, ", event:", event_index)
     # test a potential assignment
     # game, check all practices
     if isinstance(event_index, int):
         for practice in schedule[PRAC][event_index]:
             for slot in practice:
+                # Friday practices collide with Monday games
+                # games cannot have Friday slot (slot index will never be that high)
+                if slot >= SLOTS_PER_DAY*2:
+                    slot -= SLOTS_PER_DAY*2
+
                 if slot in slots_indices:
                     return False
     # practice, just check game
     else:
-        for slot in schedule[GAME][event_index[0]]:
-            if slot in slots_indices:
+        for slot in slots_indices:
+            # Friday collisions with Monday games
+            if slot >= SLOTS_PER_DAY*2:
+                slot -= SLOTS_PER_DAY*2
+            if slot in schedule[GAME][event_index[0]][GAME_TIME]:
+                if DEBUG: 
+                    print("Fail on:", slot, " in game: ", schedule[GAME][event_index[0]])
                 return False
         
     return True
@@ -218,6 +230,7 @@ def check_all_unwanted(schedule):
             return False
     return True
 
+# used by incompatible
 def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
     slots1 = ()
     slots2 = ()
@@ -239,27 +252,24 @@ def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
             return False     # checkig each bound would be O(2) and n will be max 4
     return True
 
+# old, integrated as a helper in assign
+# def check_game_prac_overlap(slot_indices, event_index, schedule, DEBUG=False):
+#     # game, check all practices
+#     if isinstance(event_index, int):
+#         for practice_index, _ in enumerate(schedule[PRAC][event_index]):
+#             if not check_no_overlap(event_index, (event_index, practice_index), schedule, DEBUG):
+#                 if DEBUG:
+#                     print("Fail in game practice overlap 1: ", event_index, practice_index)
+#                 return False
+#     # practice, check the game
+#     else:
+#         print(event_index[0], event_index)
+#         if not check_no_overlap(event_index[0], event_index, schedule, DEBUG):
+#             if DEBUG:
+#                 print("Fail in game practice overlap 2: ", event_index, practice_index)
+#             return False
 
-
-def check_game_prac_overlap(slot_indices, event_index, schedule, DEBUG=False):
-    # game, check all practices
-    if isinstance(event_index, int):
-        for practice_index, _ in enumerate(schedule[PRAC][event_index]):
-            if not check_no_overlap(event_index, (event_index, practice_index), schedule, DEBUG):
-                if DEBUG:
-                    print("Fail in game practice overlap 1: ", event_index, practice_index)
-                return False
-    # practice, check the game
-    else:
-        print(event_index[0], event_index)
-        if not check_no_overlap(event_index[0], event_index, schedule, DEBUG):
-            if DEBUG:
-                print("Fail in game practice overlap 2: ", event_index, practice_index)
-            return False
-
-    return True
-
-
+#     return True
 
 # --------------------------- set ---------------------------
 # make gamemax/ gamemin zero for all provided slot_indices (use for staff meeting)
@@ -299,6 +309,10 @@ s_practices = []
 s_slots = [[]]
 test_schedule = [s_games, s_practices, s_slots]
 
+M = 0  # not needed, just use the number. Nice for CTRL+D changes to T or F
+T = SLOTS_PER_DAY
+F = SLOTS_PER_DAY * 2
+
 # def set_test_1(s_games, s_practices, s_slots, test_schedule):
 s_games = [[1, ()], [-1000, ()]]
 s_practices = [
@@ -308,6 +322,11 @@ s_practices = [
 s_slots = m.init_slots(1,1,1,1)
 test_schedule = [s_games, s_practices, s_slots]
 
+def test(b):
+    if b:
+        print("PASS")
+    else:
+        print("FAIL")
 
 # print("BEFORE assign:")
 # print_schedule(test_schedule)
@@ -367,14 +386,25 @@ test_schedule = [s_games, s_practices, s_slots]
 # print(check_no_overlap(0,[1,1],test_schedule)) # True
 
 # -------------------------- div/ practice -----------------------
-# t = SLOTS_PER_DAY
-# f = SLOTS_PER_DAY * 2
 def test_div_practice_collision():
-    print(assign(0, (0,1), test_schedule) == True) 
-    print(assign([0,0], (0,1), test_schedule) == False) # overlap err, game already assigned
-    print(assign([0,1], (2,3), test_schedule) == True)
-    print(assign([1,0], (2,3), test_schedule) == False) # max err 
-    print(assign([1,1], (4,5), test_schedule) == True) 
-    print(assign(1, (4,5), test_schedule) == False) # overlap err, practice already assigned
+    # print("Monday:")
+    # test(assign(0, (0,1), test_schedule) == True) 
+    # test(assign([0,0], (0,1), test_schedule) == False) # overlap err, game already assigned
+    # test(assign([0,1], (2,3), test_schedule) == True)
+    # test(assign([1,0], (2,3), test_schedule) == False) # max err 
+    # test(assign([1,1], (4,5), test_schedule) == True) 
+    # test(assign(1, (4,5), test_schedule) == False) # overlap err, practice already assigned
 
-# test_div_practice_collision()
+    print("Friday:")
+    test(assign(0,      (F,F+1),            test_schedule) == False) # fail, game cannot be Friday 
+    test(assign([0,0],  (F,F+1,F+2,F+3),    test_schedule, DEBUG=True) == True)
+    test(assign(0,      (M,M+1),            test_schedule) == False) # fail, overlap with [0,0]
+    test(assign(0,      (M+8,M+9),          test_schedule) == True)
+    test(assign([0,1],  (F+2,F+3),          test_schedule) == False) # fail, F practices must be 2hrs
+    test(assign([0,1],  (F+2,F+3,F+4,F+5),  test_schedule) == False) # fail, alignment
+    test(assign([0,1],  (F+4,F+5,F+6,F+7),  test_schedule) == True)
+    test(assign([1,0],  (F,F+1,F+2,F+3),    test_schedule) == False) # max err
+    test(assign([1,0],  (F,F+1,F+2,F+3),    test_schedule) == False) # max err
+    m.print_schedule(test_schedule)
+
+test_div_practice_collision()
