@@ -2,17 +2,32 @@ import main as m
 from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
             GAME, GAME_CODE, GAME_TIME, \
             PRAC, \
-            SLOT, GAMX, GAMN, PRAX, PRAN
+            SLOT, GAMX, GAMN, PRAX, PRAN, \
+            EVENING_CONST, EVENING_BOUND
 
-# TODO is there a better way?  Hashing is inefficient
+
+
+# TODO work on overlapping, this is tougher
+# - divisions within a tier
+# - open practices for divisions... how the fuck are we doing this????????????
+# - all games of older age groups (U15/ U16/ U17/ U19)
+
+# TODO
+# Division 9 and above are evening divisions (6pm or later). 
+
+
+# TODO is there a better way?  Hashing is inefficient, should be fine for small examples in demo
 unwanted = {}  # dictionary unwanted[event_index] = (slots)
 incompatible = {} # dictionary incompatible[event_index] = [event_indices]
 
 # --------------------------- assignment ---------------------------
 # - checks all slots_indices can be assigned to (max > 0) 
 # - checks for viability (mod checks and contiguous checks) 
+# - checks for practice collision with division game/ vice versa
+# - checks collisions on Friday practice/ Monday games
 # If any constraint fails, return false
-# else success:
+# 
+# On success:
 # - decrements gamemax or practicemax for all slot indices
 # - sets the event time tuple to slots_indices
 
@@ -210,6 +225,38 @@ def assign_helper_game_prac_overlap(slots_indices, event_index, schedule, DEBUG=
         
     return True
 
+def assign_helper_evening(slot_indices, event_index, schedule, DEBUG=False):
+    # check whether the event has an evening restriction
+    if isinstance(event_index, int):
+        event_code = abs(schedule[GAME][event_index][GAME_CODE])
+    else:
+        event_code = abs(schedule[GAME][event_index[0]][GAME_CODE])
+    
+    if event_code < EVENING_CONST:
+        # event is not evening, no restriction
+        if DEBUG:
+            print("Not evening class, no restriction:", event_code, "<", EVENING_CONST)
+        return True
+        
+    # if event does have restriction, make sure it is within bounds
+    # normalize to abstract the day out. Result should be 8:00-20:30 (0-something, i think it was 26) regardless of day
+    # if the first one is evening, the rest must be too
+    slot_zero_norm = slot_indices[0] - SLOTS_PER_DAY*(slot_indices[0]//SLOTS_PER_DAY)
+    # if the normalized time is less than the evening bound, 
+    # this evening class is being assigned a day slot. Kill it. 
+    if slot_zero_norm < EVENING_BOUND:
+        if DEBUG:
+            print("Fail. Evening class with day slot:", slot_zero_norm, "<", EVENING_BOUND)
+        return False
+        
+    if DEBUG:
+        print("Alles Klar")
+    return True
+        
+
+
+
+
 
 
 # --------------------------- checks ---------------------------
@@ -278,17 +325,6 @@ def set_zero_game_max(slot_indices, schedule):
         schedule[SLOT][slot][GAMX] = 0
         schedule[SLOT][slot][GAMN] = 0
     return schedule
-
-
-# TODO work on overlapping, this is tougher
-# - divisions within a tier
-# - open practices for divisions... how the fuck are we doing this????????????
-# - all games of older age groups (U15/ U16/ U17/ U19)
-# - collisions with Friday practice/ monday game. just if gt SLOTS_PER_DAY * 2 check minus SLOTS_PER_DAY * 2
-
-# TODO
-# Division 9 and above are evening divisions (6pm or later). 
-
 
 
 # ########################## Tests ##########################
@@ -397,7 +433,7 @@ def test_div_practice_collision():
 
     print("Friday:")
     test(assign(0,      (F,F+1),            test_schedule) == False) # fail, game cannot be Friday 
-    test(assign([0,0],  (F,F+1,F+2,F+3),    test_schedule, DEBUG=True) == True)
+    test(assign([0,0],  (F,F+1,F+2,F+3),    test_schedule) == True)
     test(assign(0,      (M,M+1),            test_schedule) == False) # fail, overlap with [0,0]
     test(assign(0,      (M+8,M+9),          test_schedule) == True)
     test(assign([0,1],  (F+2,F+3),          test_schedule) == False) # fail, F practices must be 2hrs
@@ -407,4 +443,32 @@ def test_div_practice_collision():
     test(assign([1,0],  (F,F+1,F+2,F+3),    test_schedule) == False) # max err
     m.print_schedule(test_schedule)
 
-test_div_practice_collision()
+# test_div_practice_collision()
+
+
+def test_assign_helper_evening():
+    # assign_helper_evening only checks the first slot index, so most of these are (n,0)
+    test(assign_helper_evening((0,1), 0,        test_schedule) == True) # game 0 has code 1 (not evening)
+    test(assign_helper_evening((0,1), [0,0],    test_schedule) == True) # practice [0,0] for game 0 with code 1 (not evening) 
+    test(assign_helper_evening((0,1), 1,        test_schedule) == False) # game 1 has code -1000 (evening)
+    test(assign_helper_evening((0,1), [1,0],    test_schedule) == False) # practice [1,0] for game 0 with code -1000 (evening)
+    test(assign_helper_evening((20,21), 1,      test_schedule) == True) # good evening
+    test(assign_helper_evening((24,25), [1,0],  test_schedule) == True) # good evening
+    print("T")
+    test(assign_helper_evening((T,0), 0,          test_schedule) == True) # good T game morning
+    test(assign_helper_evening((T,0), [0,0],      test_schedule) == True) # good T prac morning
+    test(assign_helper_evening((T,0), [0,0],      test_schedule) == True) # good T prac morning
+    test(assign_helper_evening((T+20,0), 0,       test_schedule) == True) # good T game evening
+    test(assign_helper_evening((T,0), 1,          test_schedule) == False) # bad T game morning
+    test(assign_helper_evening((T,0), [1,0],      test_schedule) == False) # bad T prac morning
+    test(assign_helper_evening((T+20,0), [1,0],   test_schedule) == True) # good T prac evening
+    print("F") # dup t tests to make sure they work on Friday
+    test(assign_helper_evening((F,0), 0,          test_schedule) == True) # good F game morning
+    test(assign_helper_evening((F,0), [0,0],      test_schedule) == True) # good F prac morning
+    test(assign_helper_evening((F,0), [0,0],      test_schedule) == True) # good F prac morning
+    test(assign_helper_evening((F+20,0), 0,       test_schedule) == True) # good F game evening
+    test(assign_helper_evening((F,0), 1,          test_schedule) == False) # bad F game morning
+    test(assign_helper_evening((F,0), [1,0],      test_schedule) == False) # bad F prac morning
+    test(assign_helper_evening((F+20,0), [1,0],   test_schedule) == True) # good F prac evening
+
+# test_assign_helper_evening()

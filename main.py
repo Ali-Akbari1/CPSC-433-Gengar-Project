@@ -13,6 +13,14 @@ GAMN = 1        # index of gamemin in slot array
 PRAX = 2        # index of practicemax in slot array
 PRAN = 3        # index of practicemin in slot array
 
+# Game number key
+# - positive number league/age, young divisions
+# - positive number plus constant, = evening, young divisions
+# - negative number for league/ age group 16 and above
+# - negative number minus constant = evening, old divisions
+EVENING_CONST = 1000
+EVENING_BOUND = 20   # 8am start, this should be 6pm
+
 
 ################################# slots ###################################
 # placeholder, parser can assign as needed
@@ -40,6 +48,10 @@ def get_slot_index(day, time):
     res = 0
     
     time_arr = time.split(":")
+    if int(time_arr[0]) < 8:
+        print("Please use 24hr clock, I dont want to do AM PM logic")
+        return None
+
     res = (int(time_arr[0]) - 8) * 2
     if(time_arr[1] == "30"):
         res += 1
@@ -51,10 +63,11 @@ def get_slot_index(day, time):
         res += SLOTS_PER_DAY * 2
     return res
 
-# print("Monday: %d, %d, ..., %d. " % (get_slot_index("M", "8:00"), get_slot_index("M", "8:30"), get_slot_index("M", "20:30")))
+
+
+# print("Monday: %d, %d, ..., %d. " % (get_slot_index("M", "18:00"), get_slot_index("M", "18:30"), get_slot_index("M", "20:30")))
 # print("Tuesday: %d, %d, ..., %d. " % (get_slot_index("T", "8:00"), get_slot_index("T", "8:30"), get_slot_index("T", "20:30")))
 # print("Friday: %d, %d, ..., %d. " % (get_slot_index("F", "8:00"), get_slot_index("F", "8:30"), get_slot_index("F", "20:30")))
-
 
 
 # ------------------------ Schedule -----------------------
