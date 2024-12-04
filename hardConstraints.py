@@ -46,16 +46,22 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
         if DEBUG:
             print("Assignment failed: incompatible. ")
         return False
+    if not assign_helper_game_prac_overlap(slots_indices, event_index, schedule, DEBUG):
+        if DEBUG:
+            print("Assign failed. Practice overlaps with associated div game: ", event_index)
+        return False
     
     # if integer, event is a game (one index)
     if(isinstance(event_index, int)):
         # check the assignment can be done
         if not schedule[GAME][event_index][GAME_TIME] == ():
             if DEBUG:
-                print("Cannot reassign game. ")
+                print("Assign failed. Cannot reassign game. ")
             return False
         for slot in slots_indices:
             if schedule[SLOT][slot][GAMX] <= 0:
+                if DEBUG:
+                    print("Assign failed. Gamemax would be exceeded. ")
                 return False
             
         # do the assignment
@@ -68,16 +74,18 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
         # check the assignment can be done
         if not schedule[PRAC][event_index[0]][event_index[1]] == ():
             if DEBUG:
-                print("Cannot reassign practice: ",schedule[PRAC][event_index[0]][event_index[1]])
+                print("Assign failed. Cannot reassign practice: ",schedule[PRAC][event_index[0]][event_index[1]])
         for slot in slots_indices:
             if schedule[SLOT][slot][PRAX] <= 0:
+                if DEBUG:
+                    print("Assign failed. Practicemax would be exceeded. ")
                 return False
         # event has two indices, so is a practice
         for slot in slots_indices:
             schedule[SLOT][slot][PRAX] -= 1   # decrement practicemax
         schedule[PRAC][event_index[0]][event_index[1]] = slots_indices
     else:
-        print("event_index not int or list of length two. This should not happen. ")
+        print("Assign failed. event_index not int or list of length two. This should not happen. ")
         exit()
 
     return True
@@ -174,6 +182,23 @@ def assign_helper_incompatible(event_index, schedule):
                 return False
     return True
 
+def assign_helper_game_prac_overlap(slots_indices, event_index, schedule, DEBUG=False):
+    # test a potential assignment
+    # game, check all practices
+    if isinstance(event_index, int):
+        for practice in schedule[PRAC][event_index]:
+            for slot in practice:
+                if slot in slots_indices:
+                    return False
+    # practice, just check game
+    else:
+        for slot in schedule[GAME][event_index[0]]:
+            if slot in slots_indices:
+                return False
+        
+    return True
+
+
 
 # --------------------------- checks ---------------------------
 # shouldn't need this (loop invariant), but maybe for debugging
@@ -193,8 +218,7 @@ def check_all_unwanted(schedule):
             return False
     return True
 
-
-def check_no_overlap(event_index1, event_index2, schedule):
+def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
     slots1 = ()
     slots2 = ()
     # get first set of slots
@@ -207,12 +231,35 @@ def check_no_overlap(event_index1, event_index2, schedule):
         slots2 = schedule[GAME][event_index2][GAME_TIME]
     else:
         slots2 = schedule[PRAC][event_index2[0]][event_index2[1]]
-    
     # compare slots
     for slot in slots1:
         if slot in slots2:   # O(n) in slot size, but the arrays should be so small that it should not matter
+            if DEBUG:
+                print("Check overlap fail: ", event_index1, ":", slots1, event_index2, ":", slots2)
             return False     # checkig each bound would be O(2) and n will be max 4
     return True
+
+
+
+def check_game_prac_overlap(slot_indices, event_index, schedule, DEBUG=False):
+    # game, check all practices
+    if isinstance(event_index, int):
+        for practice_index, _ in enumerate(schedule[PRAC][event_index]):
+            if not check_no_overlap(event_index, (event_index, practice_index), schedule, DEBUG):
+                if DEBUG:
+                    print("Fail in game practice overlap 1: ", event_index, practice_index)
+                return False
+    # practice, check the game
+    else:
+        print(event_index[0], event_index)
+        if not check_no_overlap(event_index[0], event_index, schedule, DEBUG):
+            if DEBUG:
+                print("Fail in game practice overlap 2: ", event_index, practice_index)
+            return False
+
+    return True
+
+
 
 # --------------------------- set ---------------------------
 # make gamemax/ gamemin zero for all provided slot_indices (use for staff meeting)
@@ -222,14 +269,12 @@ def set_zero_game_max(slot_indices, schedule):
         schedule[SLOT][slot][GAMN] = 0
     return schedule
 
-# TODO   I'll work on these on the way home
-# Not compatible()
 
 # TODO work on overlapping, this is tougher
-# - divisions within a game
-# - practices for a division
-# - open practices for divisions
+# - divisions within a tier
+# - open practices for divisions... how the fuck are we doing this????????????
 # - all games of older age groups (U15/ U16/ U17/ U19)
+# - collisions with Friday practice/ monday game. just if gt SLOTS_PER_DAY * 2 check minus SLOTS_PER_DAY * 2
 
 # TODO
 # Division 9 and above are evening divisions (6pm or later). 
@@ -307,12 +352,13 @@ test_schedule = [s_games, s_practices, s_slots]
 
 
 # -------------------------- o0verlap -----------------------
+# not working, integrated check into assign
 # t = SLOTS_PER_DAY
 # assign(0, (t,t+1,t+2), test_schedule)
 # assign(1, (t+3,t+4,t+5), test_schedule)
-# assign([0,0], (t,t+1), test_schedule, DEBUG=True)
-# assign([0,1], (t+2,t+3), test_schedule, DEBUG=True)
-# assign([1,1], (t+4,t+5), test_schedule, DEBUG=True)
+# assign([0,0], (t,t+1), test_schedule)
+# assign([0,1], (t+2,t+3), test_schedule)
+# assign([1,1], (t+4,t+5), test_schedule)
 # print(check_no_overlap(0,1,test_schedule)) # True
 # m.print_schedule(test_schedule)
 # print(check_no_overlap([0,0],[0,1],test_schedule)) # True
@@ -320,6 +366,15 @@ test_schedule = [s_games, s_practices, s_slots]
 # print(check_no_overlap(0,[0,1],test_schedule)) # False
 # print(check_no_overlap(0,[1,1],test_schedule)) # True
 
+# -------------------------- div/ practice -----------------------
+# t = SLOTS_PER_DAY
+# f = SLOTS_PER_DAY * 2
+def test_div_practice_collision():
+    print(assign(0, (0,1), test_schedule) == True) 
+    print(assign([0,0], (0,1), test_schedule) == False) # overlap err, game already assigned
+    print(assign([0,1], (2,3), test_schedule) == True)
+    print(assign([1,0], (2,3), test_schedule) == False) # max err 
+    print(assign([1,1], (4,5), test_schedule) == True) 
+    print(assign(1, (4,5), test_schedule) == False) # overlap err, practice already assigned
 
-
-
+# test_div_practice_collision()
