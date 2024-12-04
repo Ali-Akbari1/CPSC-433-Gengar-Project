@@ -1,10 +1,14 @@
-import main
+import main as m
 from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
             GAME, GAME_CODE, GAME_TIME, \
             PRAC, \
             SLOT, GAMX, GAMN, PRAX, PRAN
 
-################################# assignment ###################################
+# TODO is there a better way?  Hashing is inefficient
+unwanted = {}  # dictionary unwanted[event_index] = (slots)
+incompatible = {} # dictionary incompatible[event_index] = [event_indices]
+
+# --------------------------- assignment ---------------------------
 # - checks all slots_indices can be assigned to (max > 0) 
 # - checks for viability (mod checks and contiguous checks) 
 # If any constraint fails, return false
@@ -21,7 +25,11 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 # slots_indices  - a list of slots to assign the game/ practice
 # solution       - where to store the information that an event is assigned
 def assign(event_index, slots_indices, schedule, DEBUG=False):
-    # easy checks, get it out of the way
+    if DEBUG:
+        print("---------------DEBUG ASSIGN ---------------")
+        print("event index: ", event_index)
+        print("slot indices: ", slots_indices)
+    # easy checks, get them out of the way
     if not assign_helper_contiguous(slots_indices):
         if(DEBUG):
             print("Assignment failed: slots must be contiguous. ")
@@ -30,13 +38,26 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
         if(DEBUG):
             print("Assignment failed: alignment. ")
         return False
+    if not assign_helper_unwanted(event_index, schedule):
+        if DEBUG:
+            print("Assignment failed: unwanted. ")
+        return False
+    if not assign_helper_incompatible(event_index, schedule):
+        if DEBUG:
+            print("Assignment failed: incompatible. ")
+        return False
     
     # if integer, event is a game (one index)
     if(isinstance(event_index, int)):
         # check the assignment can be done
+        if not schedule[GAME][event_index][GAME_TIME] == ():
+            if DEBUG:
+                print("Cannot reassign game. ")
+            return False
         for slot in slots_indices:
             if schedule[SLOT][slot][GAMX] <= 0:
                 return False
+            
         # do the assignment
         for slot in slots_indices:
             schedule[SLOT][slot][GAMX] -= 1
@@ -45,6 +66,9 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
     # else two integers, event is a practice (two indices)
     elif(len(event_index) == 2):
         # check the assignment can be done
+        if not schedule[PRAC][event_index[0]][event_index[1]] == ():
+            if DEBUG:
+                print("Cannot reassign practice: ",schedule[PRAC][event_index[0]][event_index[1]])
         for slot in slots_indices:
             if schedule[SLOT][slot][PRAX] <= 0:
                 return False
@@ -58,6 +82,7 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
 
     return True
 
+# function calls are probably inefficient. Maybe python is optimizing... 
 def assign_helper_contiguous(slot_indices, max_index=(SLOTS_PER_DAY*3)-1, DEBUG=False):
     # error check
     if not slot_indices[0] >= 0:
@@ -93,12 +118,12 @@ def assign_helper_alignment(slot_indices, event_index, DEBUG=False):
         if isinstance(event_index, int):
             if not len(slot_indices) == 3 or not (slot_indices[0]-SLOTS_PER_DAY) % 3 == 0:
                 if DEBUG:
-                    print("Failed tuesday game alignment. ")
+                    print("Failed Tuesday game alignment. ")
                 return False
         # Tuesday practices are 60 mins
         elif not len(slot_indices) == 2 or not slot_indices[0] % 2 == 0:
             if DEBUG:
-                print("Failed tuesday practice alignment. ")
+                print("Failed Tuesday practice alignment. ")
             return False
     # Friday 
     elif slot_indices[0] < SLOTS_PER_DAY*3:
@@ -119,16 +144,77 @@ def assign_helper_alignment(slot_indices, event_index, DEBUG=False):
     
     return True
 
+def assign_helper_unwanted(event_index, schedule):
+    if isinstance(event_index, int):
+        event = event_index
+    else:
+        event = tuple(event_index)  # needed to hash into a dictionary
+    if event in unwanted:
+        unwanted_slots = unwanted[event]
+        # game
+        if isinstance(event_index, int):
+            for slot in schedule[GAME][event_index][GAME_TIME]:
+                if slot in unwanted_slots:
+                    return False
+        # practice
+        else: 
+            for slot in schedule[PRAC][event_index[0]][event_index[1]]:
+                if slot in unwanted_slots:
+                    return False
+    return True
 
+def assign_helper_incompatible(event_index, schedule):
+    if isinstance(event_index, int):
+        event = event_index
+    else:
+        event = tuple(event_index)
+    if event in incompatible:
+        for event in incompatible[event]:
+            if not check_no_overlap(event_index, event, schedule):
+                return False
+    return True
+
+
+# --------------------------- checks ---------------------------
 # shouldn't need this (loop invariant), but maybe for debugging
-def hard_all_maxes_non_negative(schedule):
+def check_all_maxes_non_negative(schedule):
     for slot in schedule[SLOT]:
         if slot[GAMX]<=0:
             return False
         if slot[PRAX]<=0:
             return False
 
+# iterates thorugh a pre-set deictionary
+# helper function is used in assign, but this can be used for debug/ final double check if needed
+# changed to tuples, might be broken
+def check_all_unwanted(schedule):
+    for event in unwanted:
+        if not assign_helper_unwanted(unwanted[event], event, schedule):
+            return False
+    return True
 
+
+def check_no_overlap(event_index1, event_index2, schedule):
+    slots1 = ()
+    slots2 = ()
+    # get first set of slots
+    if isinstance(event_index1, int):
+        slots1 = schedule[GAME][event_index1][GAME_TIME]
+    else:
+        slots1 = schedule[PRAC][event_index1[0]][event_index1[1]]
+    # get second set of slots
+    if isinstance(event_index2, int):
+        slots2 = schedule[GAME][event_index2][GAME_TIME]
+    else:
+        slots2 = schedule[PRAC][event_index2[0]][event_index2[1]]
+    
+    # compare slots
+    for slot in slots1:
+        if slot in slots2:   # O(n) in slot size, but the arrays should be so small that it should not matter
+            return False     # checkig each bound would be O(2) and n will be max 4
+    return True
+
+# --------------------------- set ---------------------------
 # make gamemax/ gamemin zero for all provided slot_indices (use for staff meeting)
 def set_zero_game_max(slot_indices, schedule):
     for slot in slot_indices:
@@ -137,8 +223,6 @@ def set_zero_game_max(slot_indices, schedule):
     return schedule
 
 # TODO   I'll work on these on the way home
-# Division 9 and above are evening divisions (6pm or later). 
-# Unwanted()
 # Not compatible()
 
 # TODO work on overlapping, this is tougher
@@ -147,6 +231,8 @@ def set_zero_game_max(slot_indices, schedule):
 # - open practices for divisions
 # - all games of older age groups (U15/ U16/ U17/ U19)
 
+# TODO
+# Division 9 and above are evening divisions (6pm or later). 
 
 
 
@@ -163,17 +249,20 @@ def set_zero_game_max(slot_indices, schedule):
 # negative = old
 # constant = evening 
 
-# s_games = [[1, ()], [-1000, ()]]
-# s_practices = [
-#         [(), ()],
-#         [(), ()]
-#     ]
-# s_slots = [[1,1,1,1], [1,1,1,1], [1,1,1,1], 
-#            [1,1,1,1], [1,1,1,1], [1,1,1,1], 
-#            [1,1,1,1], [1,1,1,1], [1,1,1,1], 
-#            [1,1,1,1], [1,1,1,1], [1,1,1,1]
-#            ]
-# test_schedule = [s_games, s_practices, s_slots]
+s_games = []
+s_practices = []
+s_slots = [[]]
+test_schedule = [s_games, s_practices, s_slots]
+
+# def set_test_1(s_games, s_practices, s_slots, test_schedule):
+s_games = [[1, ()], [-1000, ()]]
+s_practices = [
+        [(), ()],
+        [(), ()]
+    ]
+s_slots = m.init_slots(1,1,1,1)
+test_schedule = [s_games, s_practices, s_slots]
+
 
 # print("BEFORE assign:")
 # print_schedule(test_schedule)
@@ -215,3 +304,22 @@ def set_zero_game_max(slot_indices, schedule):
 # print(assign_helper_alignment((f+3,f+4,f+5,f+6), [0,0])) # false, alignment
 # print(assign_helper_alignment((f,f+1,f+2), [0,0]))       # false, size
 # print(assign_helper_alignment((f,f+1,f+2,f+3,f+4), [0,0])) # false, size
+
+
+# -------------------------- o0verlap -----------------------
+# t = SLOTS_PER_DAY
+# assign(0, (t,t+1,t+2), test_schedule)
+# assign(1, (t+3,t+4,t+5), test_schedule)
+# assign([0,0], (t,t+1), test_schedule, DEBUG=True)
+# assign([0,1], (t+2,t+3), test_schedule, DEBUG=True)
+# assign([1,1], (t+4,t+5), test_schedule, DEBUG=True)
+# print(check_no_overlap(0,1,test_schedule)) # True
+# m.print_schedule(test_schedule)
+# print(check_no_overlap([0,0],[0,1],test_schedule)) # True
+# print(check_no_overlap(0,[0,0],test_schedule)) # False
+# print(check_no_overlap(0,[0,1],test_schedule)) # False
+# print(check_no_overlap(0,[1,1],test_schedule)) # True
+
+
+
+

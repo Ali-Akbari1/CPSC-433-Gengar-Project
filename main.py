@@ -66,14 +66,16 @@ def get_slot_index(day, time):
 #               [(), (), ..., ()]   # k arrays of practices, each has variable length
 #            ]
 # slots = [(GAMX,GAMN,PRAX,PRAN), (GAMX,GAMN,PRAX,PRAN), ..., (GAMX,GAMN,PRAX,PRAN)]
-def print_schedule(schedule):
-    print("-------- EVENTS --------")
-    for g, game in enumerate(schedule[GAME]):
-        print(g, game)
+def print_schedule(schedule, events=True, slots=False):
+    if events:
+        print("-------- EVENTS --------")
+        for g, game in enumerate(schedule[GAME]):
+            print(g, game)
 
-        for p, practice in enumerate(schedule[PRAC][GAME]):
-            print("|", p, practice)
+            for p, practice in enumerate(schedule[PRAC][g]):
+                print("|", p, practice)
 
-    print("\n-------- SLOTS --------")
-    for s, slot in enumerate(schedule[SLOT]):
-        print(s, slot)
+    if slots:
+        print("\n-------- SLOTS --------")
+        for s, slot in enumerate(schedule[SLOT]):
+            print(s, slot)
