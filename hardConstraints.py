@@ -6,19 +6,17 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
             EVENING_CONST, EVENING_BOUND
 
 
-
 # TODO work on overlapping, this is tougher
 # - divisions within a tier
 # - open practices for divisions... how the fuck are we doing this????????????
 # - all games of older age groups (U15/ U16/ U17/ U19)
 
-# TODO
-# Division 9 and above are evening divisions (6pm or later). 
-
-
-# TODO is there a better way?  Hashing is inefficient, should be fine for small examples in demo
 unwanted = {}  # dictionary unwanted[event_index] = (slots)
 incompatible = {} # dictionary incompatible[event_index] = [event_indices]
+
+# bandaids for bullet holes, worked in Breaking Bad
+open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices].  append on taking in
+upper_level = {} # set  upper_level = {slot_index, slot_index, ..., slot_index}  check for membership before assignment
 
 # --------------------------- assignment ---------------------------
 # - checks all slots_indices can be assigned to (max > 0) 
@@ -39,7 +37,7 @@ incompatible = {} # dictionary incompatible[event_index] = [event_indices]
 # event_index    - one number for games, two for practices. This is where to assign the slots to. 
 # slots_indices  - a list of slots to assign the game/ practice
 # solution       - where to store the information that an event is assigned
-def assign(event_index, slots_indices, schedule, DEBUG=False):
+def assign(event_index, slots_indices, schedule, set=True, DEBUG=False):
     if DEBUG:
         print("---------------DEBUG ASSIGN ---------------")
         print("event index: ", event_index)
@@ -65,6 +63,10 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
         if DEBUG:
             print("Assign failed. Practice overlaps with associated div game: ", event_index)
         return False
+    if not assign_helper_evening(slots_indices, event_index, schedule):
+        if DEBUG:
+            print("Assign failed. Evening class not in evening slot: ", event_index, slots_indices)
+        return False
     
     # if integer, event is a game (one index)
     if(isinstance(event_index, int)):
@@ -79,10 +81,11 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
                     print("Assign failed. Gamemax would be exceeded. ")
                 return False
             
-        # do the assignment
-        for slot in slots_indices:
-            schedule[SLOT][slot][GAMX] -= 1
-        schedule[GAME][event_index][GAME_TIME] = slots_indices
+        # if set is true, do the assignment
+        if set:
+            for slot in slots_indices:
+                schedule[SLOT][slot][GAMX] -= 1
+            schedule[GAME][event_index][GAME_TIME] = slots_indices
     
     # else two integers, event is a practice (two indices)
     elif(len(event_index) == 2):
@@ -96,9 +99,11 @@ def assign(event_index, slots_indices, schedule, DEBUG=False):
                     print("Assign failed. Practicemax would be exceeded. ")
                 return False
         # event has two indices, so is a practice
-        for slot in slots_indices:
-            schedule[SLOT][slot][PRAX] -= 1   # decrement practicemax
-        schedule[PRAC][event_index[0]][event_index[1]] = slots_indices
+        # if set is true, make it so
+        if set:
+            for slot in slots_indices:
+                schedule[SLOT][slot][PRAX] -= 1   # decrement practicemax
+            schedule[PRAC][event_index[0]][event_index[1]] = slots_indices
     else:
         print("Assign failed. event_index not int or list of length two. This should not happen. ")
         exit()
@@ -252,9 +257,17 @@ def assign_helper_evening(slot_indices, event_index, schedule, DEBUG=False):
     if DEBUG:
         print("Alles Klar")
     return True
-        
 
-
+# half assed 
+def assign_helper_open_practice(slot_indices, event_index, schedule, DEBUG=False):
+    # game or not in open practices return True
+    if isinstance(event_index, int) or (not tuple(slot_indices) in open_practices):
+        return True
+    
+    for game_index in open_practices[tuple(event_index)]:
+        if not check_slots_no_overlap(slot_indices, game_index):
+            return False
+    return True
 
 
 
@@ -298,6 +311,22 @@ def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
                 print("Check overlap fail: ", event_index1, ":", slots1, event_index2, ":", slots2)
             return False     # checkig each bound would be O(2) and n will be max 4
     return True
+
+def check_slots_no_overlap(slot_indices, event_index, schedule, DEBUG=False):
+    slots_event = ()
+    # get set of slots from event
+    if isinstance(event_index, int):
+        slots_event = schedule[GAME][event_index][GAME_TIME]
+    else:
+        slots_event = schedule[PRAC][event_index[0]][event_index[1]]
+    # compare slots
+    for slot in slots_event:
+        if slot in slot_indices:
+            if DEBUG:
+                print("Check overlap fail: ", event_index, ":", slots_event, "with :", slot_indices)
+            return False
+    return True
+
 
 # old, integrated as a helper in assign
 # def check_game_prac_overlap(slot_indices, event_index, schedule, DEBUG=False):
