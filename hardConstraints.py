@@ -8,8 +8,6 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 
 # TODO work on overlapping, this is tougher
 # - divisions within a tier
-# - open practices for divisions... how the fuck are we doing this????????????
-# - all games of older age groups (U15/ U16/ U17/ U19)
 
 unwanted = {}  # dictionary unwanted[event_index] = (slots)
 incompatible = {} # dictionary incompatible[event_index] = [event_indices]
@@ -265,11 +263,43 @@ def assign_helper_open_practice(slot_indices, event_index, schedule, DEBUG=False
         return True
     
     for game_index in open_practices[tuple(event_index)]:
-        if not check_slots_no_overlap(slot_indices, game_index):
+        if not check_slots_no_overlap(slot_indices, game_index, schedule):
             return False
     return True
 
+def assign_helper_upper_level(slot_indices, event_index, schedule, DEBUG=False):
+    # no restriction on tutorials
+    if not isinstance(event_index, int):
+        return True
+    # no potential problem unless event is in upper_level
+    if not event_index in upper_level:
+        return True
+    
+    # games are aligned, bit of a shortcut but I think ti sohuld hold
+    for game_index in upper_level: # iterate thorugh indices 
+        if schedule[GAME][game_index][GAME_TIME][0] == slot_indices[0]:
+            return False
+    
+    return True
 
+# just for mutate
+def unassign(event_index, schedule, DEBUG=False):
+    # game
+    if isinstance(event_index, int):
+        slots = schedule[GAME][event_index][GAME_TIME]
+        # put the max up again for each slot
+        for slot in slots:
+            schedule[SLOT][slot][GAMX] += 1
+        # unassign slots from game
+        schedule[GAME][event_index][GAME_TIME] = ()
+    # practice
+    else: 
+        slots = schedule[PRAC][event_index[0]][event_index[1]]
+        # put the max up again for each slot
+        for slot in slots:
+            schedule[SLOT][slot][PRAX] += 1
+        # unassign slots from practice
+        schedule[PRAC][event_index[0]][event_index[1]] = ()
 
 
 # --------------------------- checks ---------------------------
