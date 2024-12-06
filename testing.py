@@ -26,10 +26,6 @@ inputParser.add_argument("sectionPenalty", type=int)
 args = inputParser.parse_args()
 
 
-preference_map = {}
-pair_map = {}
-tier_map = {}
-
 
 def get_associated_game(prac):
     return prac.subStr[0:-7]
@@ -41,7 +37,7 @@ def get_associated_game(prac):
 #     time = int(hours)
 #     if halfHours != "00":
 #         time += 1
-        
+
 #     if day == "M":     # 0-25
 #         return time - 16
 #     elif day == "T":   # 26-51
@@ -54,8 +50,11 @@ def get_associated_game(prac):
 
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
-    
-    
+
+
+    preference_map = {}
+    pair_map = {}
+    tier_map = {}
     tables = {} # Using a dictionary, key: headers, values: rows
 
                 # tables[someHeader] = [rows] <- list of rows (for Games and Practices I used a Dictionary instead)
@@ -64,7 +63,7 @@ with open(args.filename, "r") as inputFile:
     practices = []  # practices array [ [(), (), (), ]
                     #                   [(), ()], [] ]
 
-    
+
     # slots creation
     slots = main.init_slots(0, 0, 0, 0)
 
@@ -72,20 +71,20 @@ with open(args.filename, "r") as inputFile:
     practiceCounter = 0
     validHeader = ("Name:", "Game slots:", "Practice slots:", "Games:", "Practices:", "Not compatible:", "Unwanted:", "Preferences:", "Pair:", "Partial assignments:") # a set of strings containing headers
     currentHeader = None
-    
-    
+
+
     for line in inputFile:
         line = line.strip()
-        
+
         if not line:
             continue
-        
+
         if line in validHeader:
             currentHeader = line
             if (currentHeader == "Games:"):
                 tables[currentHeader] = {} 
                 _ = None
-                
+
             elif (currentHeader == "Practices:"):
                 tables[currentHeader] = {}
                 _ = None
@@ -94,7 +93,7 @@ with open(args.filename, "r") as inputFile:
             continue
 
         line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
-        
+
         # ####################### Parsing Game Slots: ########################
         if currentHeader == "Game slots:":
             gameLine = line.split(", ")    # [Day (ie MO), time (ie 8:00), gameMax, gameMin]
@@ -116,8 +115,11 @@ with open(args.filename, "r") as inputFile:
                 slotInd+=27 # move to Thurday
                 slots[slotInd][0] = int(gameLine[2])    
                 slots[slotInd][1] = int(gameLine[3])
-                
-                
+                # slotInd+=27 # move to Thurday
+                # slots[slotInd][0] = int(gameLine[2])    
+                # slots[slotInd][1] = int(gameLine[3])
+
+
         # ####################### Parsing Practice Slots: ########################
 
         # TODO: the case where there is not PRC, so all divisions have it?
@@ -142,16 +144,16 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('F', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])    
                 slots[slotInd][3] = int(pracLine[3])
-        
+
         # ####################### Parsing Games: ########################
         if currentHeader == "Games:":
 
-            
+
             # 
             lineCopy = line.split()
             age = int(lineCopy[1][1:2])     # age/tier
             division = int(lineCopy[3][1:])
-            
+
             # TODO: game index creation logic
             # idk if this is right...
             if (age < 16) and (division < 9):
@@ -162,12 +164,14 @@ with open(args.filename, "r") as inputFile:
                 games.append([-1, ()])
             elif (age >= 16) and (division >= 9):
                 games.append([-1-main.EVENING_CONST, ()])
-                
+
             practices.append([])
-            
+
             tables["Games:"][line] = gameCounter # for quick referencing the index of game strings, used in practices
+            tier_key = " ".join(line.split()[:2])  # Extracting the tier, e.g., "CSSC O19T1"
+            tier_map[line] = tier_key
             gameCounter += 1
-        
+
         # ####################### Parsing Practices: ########################
         if currentHeader == "Practices:":
             for i in range(len(line)):
@@ -178,7 +182,7 @@ with open(args.filename, "r") as inputFile:
                     practices[tables["Games:"][subString]].append(())
                     break                                                # add the index of the corresponding game, append an empty tuple
             pracArr = line.split()
-            
+
             # case where 'DIV' was dropped, every division of this tier gets the practice
             if pracArr[-4] != "DIV":
                 tierStr = pracArr[0] + " " + pracArr[1]
@@ -186,32 +190,32 @@ with open(args.filename, "r") as inputFile:
                     if tierStr in key:
                         practices[tables["Games:"][key]].append(())
                         tables["Practices:"][line] = [tables["Games:"][key], int(pracArr[-1])]
-                    
+
             elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
-                print(pracArr)
+                # print(pracArr)
                 tables["Practices:"][line] = [tables["Games:"][subString], int(pracArr[-1])] 
-        
+
         # ####################### Parsing Not Compatible: ########################
         elif currentHeader == "Not compatible:":
             event1, event2 = line.split(", ")
-            
+
             # TODO: failed ali_tests\SmallerInput1
             # are there cases where the games in the "Not Compatible" input are not valid games? 
             if event1 in tables["Games:"]:
                 event1_index = tables["Games:"][event1]
             elif event1 in tables["Practices:"]:
-                event1_index = (0, 0)                       # TODO: not sure what to put for the practice indices still
-                
+                event1_index = tables["Practices:"][event1]                       # TODO: not sure what to put for the practice indices still
+
 
             if event2 in tables["Games:"]:
                 event2_index = tables["Games:"][event2]
             elif event2 in tables["Practices:"]:
-                event2_index = (0, 0)                       # ^^^
-                
+                event2_index = tables["Practices:"][event2]                       # ^^^
+
             hardConstraints.set_incompatible(event1_index, event2_index)
 
-            
-            
+
+
         elif currentHeader == "Unwanted:":
             unwantedSplit = line.split(", ")
             eventStr = unwantedSplit[0]
@@ -221,8 +225,8 @@ with open(args.filename, "r") as inputFile:
                 # print(hardConstraints.unwanted)
             if eventStr in tables["Practices:"]:
                 hardConstraints.set_unwanted(tables["Practices:"][eventStr], [main.get_slot_index(unwantedSplit[1], unwantedSplit[2])])
-            
-            
+
+
         # Nathan
         elif currentHeader == "Partial assignments:":
             # CUSA O18 DIV 01, MO, 8:00
@@ -230,26 +234,24 @@ with open(args.filename, "r") as inputFile:
             # CUSA O18 DIV 01 PRC 01, FR, 8:00
             lineSplit = line.split(",")
             lineStrip = [x.strip() for x in lineSplit]
+
             event = lineStrip[0]
 
             if event in tables["Games:"]:
                 event_index = tables["Games:"][event]
             elif event in tables["Practices:"]:
-                associated_game = get_associated_game(event)
-                game_index = tables["Games:"][associated_game]
-                event_index = (game_index, practice_index)# HELP: not sure what to put for the practice indices still
-                # TODO how are you gettting the practice index?
+                event_index = tables["Practices:"][event]
 
             # CUSA O18 DIV 01, TU, 8:00
             # ["CUSA O18 DIV 01", "TU", "8:00"]
-            slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
+            print(lineStrip[1])
+            slots_indices = main.get_slot_index(lineStrip[-2], lineStrip[-1])
 
             # TODO there should also be a template game/ practice that can take assignments. 
             #   the model init takes a game and schedule, so whereever we call that
-            hardConstraints.set_partassign(event_index, slots_indices)
+            hardConstraints.set_partassign([slots_indices], event_index)
 
-
-                # ------------------- Parsing Preferences -------------------
+        # ------------------- Parsing Preferences -------------------
         elif currentHeader == "Preferences:":
             # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
             pref_parts = line.split(", ")
@@ -262,22 +264,26 @@ with open(args.filename, "r") as inputFile:
             # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
             game1, game2 = line.split(", ")
             pair_map[game1] = game2
+        
+        # # ------------------- Parsing Games (for Tier Map) -------------------
+        # elif currentHeader == "Games:":
+        #     # Example: CSSC O19T1 DIV 01
+        #     tables[currentHeader][line] = gameCounter
+        #     games.append([1, ()])  # Example game initialization
+        #     tier_key = " ".join(line.split()[:2])  # Extracting the tier, e.g., "CSSC O19T1"
+        #     tier_map[line] = tier_key
+        #     gameCounter += 1
+        
+        # ------------------- Parsing Other Sections -------------------
+        # Handle other sections like Game slots, Practice slots, Not compatible, etc.
+        # (Use the code you already provided for these.)
 
-        # ------------------- Parsing Games (for Tier Map) -------------------
-        elif currentHeader == "Games:":
-            # Example: CSSC O19T1 DIV 01
-            tables[currentHeader][line] = gameCounter
-            games.append([1, ()])  # Example game initialization
-            tier_key = " ".join(line.split()[:2])  # Extracting the tier, e.g., "CSSC O19T1"
-            tier_map[line] = tier_key
-            gameCounter += 1
-    
-            
+
 
         # create paralelles
         if line:
             line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
-            
+
             # line = re.sub(r"\s+", " ", line) # cleanup possible excess spaces between words
             # ^ maybe unneccesary
             if currentHeader == "Games:":
@@ -287,18 +293,16 @@ with open(args.filename, "r") as inputFile:
             else:
                 tables[currentHeader].append(line)
 
-        
 
 
-
-print("\nThese are test prints")
-print(games)
-print(practices)
-print(slots)
-
+# print("\nThese are test prints")
+# print(games)
+# print(practices)
+# print(slots)
 
 
-
-
-            
-# TODO integrate the soft constraint integer modifiers
+    # Print the maps for debugging
+print("Preference Map:", preference_map)
+print("Pair Map:", pair_map)
+print("Tier Map:", tier_map)
+main.print_schedule([games, practices, slots], 1, 1)
