@@ -103,6 +103,9 @@ with open(args.filename, "r") as inputFile:
                 # update the gameMax of specified slot index
                 slots[slotInd][0] = int(gameLine[2])
                 slots[slotInd][1] = int(gameLine[3])    # update gameMin
+                slotInd+=1
+                slots[slotInd][0] = int(gameLine[2])
+                slots[slotInd][1] = int(gameLine[3]) 
                 # slotInd+=27 # move to Wednesday
 
                 # slots[slotInd][0] = int(gameLine[2])
@@ -114,7 +117,10 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('T', gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])
                 slots[slotInd][1] = int(gameLine[3])
-                slotInd += 27  # move to Thurday
+                slotInd+=1
+                slots[slotInd][0] = int(gameLine[2])
+                slots[slotInd][1] = int(gameLine[3])
+                slotInd+=1
                 slots[slotInd][0] = int(gameLine[2])
                 slots[slotInd][1] = int(gameLine[3])
                 # slotInd+=27 # move to Thurday
@@ -131,6 +137,9 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('M', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
+                slotInd+=1
+                slots[slotInd][2] = int(pracLine[2])
+                slots[slotInd][3] = int(pracLine[3])
                 # slotInd+=27
                 # slots[slotInd][2] = int(pracLine[2])
                 # slots[slotInd][3] = int(pracLine[3])
@@ -138,11 +147,21 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('T', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
+                slotInd+=1
+                slots[slotInd][2] = int(pracLine[2])
+                slots[slotInd][3] = int(pracLine[3])
+                slotInd+=1
+                slots[slotInd][2] = int(pracLine[2])
+                slots[slotInd][3] = int(pracLine[3])
+                slotInd+=1
                 # slotInd+=27
                 # slots[slotInd][2] = int(pracLine[2])
                 # slots[slotInd][3] = int(pracLine[3])
             else:
                 slotInd = main.get_slot_index('F', pracLine[1])
+                slots[slotInd][2] = int(pracLine[2])
+                slots[slotInd][3] = int(pracLine[3])
+                slotInd+=1
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
 
@@ -267,7 +286,13 @@ with open(args.filename, "r") as inputFile:
         elif currentHeader == "Pair:":
             # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
             game1, game2 = line.split(", ")
+            print(games)
+            print(tables["Games:"])
+            print(game1)
+            game1_index = tables["Games:"][game1]
+            game2_index = tables["Games:"][game2]
             pair_map[game1] = game2
+            print(pair_map)
 
         # # ------------------- Parsing Games (for Tier Map) -------------------
         # elif currentHeader == "Games:":
@@ -320,7 +345,7 @@ myModel = model.Model(slots, games, practices, preference_map,
 # print(slots)
 
 # Print the maps for debugging
-print("Preference Map:", preference_map)
-print("Pair Map:", pair_map)
-print("Tier Map:", tier_map)
-main.print_schedule([games, practices, slots], 1, 1)
+# print("Preference Map:", preference_map)
+# print("Pair Map:", pair_map)
+# print("Tier Map:", tier_map)
+# main.print_schedule([games, practices, slots], 1, 1)
