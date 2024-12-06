@@ -26,6 +26,10 @@ inputParser.add_argument("sectionPenalty", type=int)
 args = inputParser.parse_args()
 
 
+preference_map = {}
+pair_map = {}
+tier_map = {}
+
 
 def get_associated_game(prac):
     return prac.subStr[0:-7]
@@ -241,8 +245,32 @@ with open(args.filename, "r") as inputFile:
 
             # TODO there should also be a template game/ practice that can take assignments. 
             #   the model init takes a game and schedule, so whereever we call that
-            hardConstraints.set_partassign([slots_indices], event_index)
-            
+            hardConstraints.set_partassign(event_index, slots_indices)
+
+
+                # ------------------- Parsing Preferences -------------------
+        elif currentHeader == "Preferences:":
+            # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
+            pref_parts = line.split(", ")
+            day, time, game, weight = pref_parts
+            slot = f"{day}, {time}"
+            preference_map[(game, slot)] = int(weight)
+
+        # ------------------- Parsing Pair -------------------
+        elif currentHeader == "Pair:":
+            # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
+            game1, game2 = line.split(", ")
+            pair_map[game1] = game2
+
+        # ------------------- Parsing Games (for Tier Map) -------------------
+        elif currentHeader == "Games:":
+            # Example: CSSC O19T1 DIV 01
+            tables[currentHeader][line] = gameCounter
+            games.append([1, ()])  # Example game initialization
+            tier_key = " ".join(line.split()[:2])  # Extracting the tier, e.g., "CSSC O19T1"
+            tier_map[line] = tier_key
+            gameCounter += 1
+    
             
 
         # create paralelles
@@ -259,7 +287,7 @@ with open(args.filename, "r") as inputFile:
                 tables[currentHeader].append(line)
 
         
-        
+
 
 
 # print("\nThese are test prints")
