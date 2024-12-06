@@ -9,11 +9,12 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 # TODO work on overlapping, this is tougher
 # - divisions within a tier
 
-unwanted = {}  # dictionary unwanted[event_index] = (slots)
-incompatible = {} # dictionary incompatible[event_index] = [event_indices]
+unwanted = {}  # dictionary unwanted[event_index] = {slots}   <- this is a set of slots
+incompatible = {} # dictionary incompatible[event_index] = {event_indices}   <- this is a set of events
 
 # bandaids for bullet holes, worked in Breaking Bad
 open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices].  append on taking in
+upper_levels = [] # array of different upper level clusters. Different divisions would not collide (I think)
 upper_level = {} # set  upper_level = {slot_index, slot_index, ..., slot_index}  check for membership before assignment
 
 # --------------------------- assignment ---------------------------
@@ -259,7 +260,7 @@ def assign_helper_evening(slot_indices, event_index, schedule, DEBUG=False):
 # half assed 
 def assign_helper_open_practice(slot_indices, event_index, schedule, DEBUG=False):
     # game or not in open practices return True
-    if isinstance(event_index, int) or (not tuple(slot_indices) in open_practices):
+    if isinstance(event_index, int) or (not tuple(event_index) in open_practices):
         return True
     
     for game_index in open_practices[tuple(event_index)]:
@@ -275,10 +276,12 @@ def assign_helper_upper_level(slot_indices, event_index, schedule, DEBUG=False):
     if not event_index in upper_level:
         return True
     
-    # games are aligned, bit of a shortcut but I think ti sohuld hold
-    for game_index in upper_level: # iterate thorugh indices 
-        if schedule[GAME][game_index][GAME_TIME][0] == slot_indices[0]:
-            return False
+    # games are aligned, check first only. Bit of a shortcut but I think it should hold
+    for upper_cluster in upper_levels:
+        if upper_cluster[0] == schedule[GAME][event_index][GAME_CODE]:
+            for game_index in upper_cluster[1]: # iterate thorugh indices 
+                if schedule[GAME][game_index][GAME_TIME][0] == slot_indices[0]:
+                    return False
     
     return True
 
@@ -310,15 +313,6 @@ def check_all_maxes_non_negative(schedule):
             return False
         if slot[PRAX]<=0:
             return False
-
-# iterates thorugh a pre-set deictionary
-# helper function is used in assign, but this can be used for debug/ final double check if needed
-# changed to tuples, might be broken
-def check_all_unwanted(schedule):
-    for event in unwanted:
-        if not assign_helper_unwanted(unwanted[event], event, schedule):
-            return False
-    return True
 
 # used by incompatible
 def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
@@ -385,6 +379,92 @@ def set_zero_game_max(slot_indices, schedule):
         schedule[SLOT][slot][GAMN] = 0
     return schedule
 
+
+# open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices].  append on taking in
+# upper_levels = [] # array of different upper level clusters. Different divisions would not collide (I think)
+# upper_level = {} # set  upper_level = {slot_index, slot_index, ..., slot_index}  check for membership before assignment
+
+# TODO makign sets in unwanted
+
+def set_unwanted(event_index, slots_indices):
+    slots_indices = tuple(slots_indices)
+    if not isinstance(event_index, int):
+        event_index = tuple(event_index)
+
+    # game
+    if isinstance(event_index, int):
+        # no entry yet
+        if event_index not in unwanted:
+            unwanted[event_index] = set(slots_indices)
+        # entry exists already, do union of sets
+        else:
+            unwanted[event_index] = unwanted[event_index].union(set([slots_indices])) # stupid extra [] because of 'pythonic' reasons probably
+    else:
+        # no entry yet
+        if event_index not in unwanted:
+            unwanted[event_index]= set(slots_indices)
+        # entry exists already, do union of sets
+        else:
+            unwanted[event_index]= unwanted[event_index].union(set([slots_indices]))
+
+def set_incompatible(event_index1, event_index2):
+    if not isinstance(event_index1, int):
+        event_index1 = tuple(event_index1)
+    if not isinstance(event_index2, int):
+        event_index2 = tuple(event_index2)
+
+    # game
+    if isinstance(event_index1, int):
+        # no entry yet
+        if event_index1 not in incompatible:
+            incompatible[event_index1] = set([event_index2]) # why the actual fuck can Python not figure out how to put a single element into a set without pretending its a one element array? Yuo could LITERALLY DO THAT WITH A ONE LINE CHECK IN THE SOURCE CODE, THERE IS NOT REASON TO NOT SUPPORT THAT
+        # entry exists already, do union of sets
+        else:
+            incompatible[event_index1] = incompatible[event_index1].union(set([event_index2]))
+    # practice
+    else:
+        # no entry yet
+        if  event_index1 not in incompatible:
+            incompatible[event_index1] = set([event_index2])
+        # entry exists already, do union of sets
+        else:
+            incompatible[event_index1] = incompatible[event_index1].union(set([event_index2]))
+
+    # do the same thing for the other one. 
+    # double updates now for easy lookup later
+    # game
+    if isinstance(event_index2, int):
+        # no entry yet
+        if event_index2 not in incompatible:
+            incompatible[event_index2] = set([event_index1])
+        # entry exists already, do union of sets
+        else:
+            incompatible[event_index2] = incompatible[event_index2].union(set([event_index1]))
+    # practice
+    else:
+        # no entry yet
+        if  event_index2 not in incompatible:
+            incompatible[event_index2] = set([event_index1])
+        # entry exists already, do union of sets
+        else:
+            incompatible[event_index2] = incompatible[tuple(event_index2)].union(set([event_index1]))
+
+# adds game indices to the set in open_practices[event_index]
+def set_open_practice(event_index, game_indices, DEBUG=False):
+    if isinstance(event_index, int):
+        if DEBUG:
+            print("Failed: set_open_practice only works for practices. ")
+        return False
+    if isinstance(game_indices, int):
+        game_indices = [game_indices]
+    
+    event_index = tuple(event_index)
+    if event_index not in open_practices:
+        open_practices[event_index] = set(game_indices)
+    else:
+        open_practices[event_index] = open_practices[event_index].union(set(game_indices))
+    return True 
+    
 
 # ########################## Tests ##########################
 
@@ -531,3 +611,70 @@ def test_assign_helper_evening():
     test(assign_helper_evening((F+20,0), [1,0],   test_schedule) == True) # good F prac evening
 
 # test_assign_helper_evening()
+
+
+
+def test_unwanted():
+    print(unwanted)
+    set_unwanted(0, (0,1))
+    print(unwanted)
+    set_unwanted(0, (1,2))
+    print(unwanted)
+    print(unwanted)
+    set_unwanted([0,0], (0,1))
+    print(unwanted)
+    set_unwanted([0,0], (1,2))
+    print(unwanted)
+
+# test_unwanted()
+
+def test_incompatible():
+    global incompatible 
+    print("-----BLOCK1-------")
+    incompatible = {}
+    print(incompatible)
+    set_incompatible(0, 1)
+    print(incompatible)
+    set_incompatible(0, 1)
+    set_incompatible(0, 2)
+    print(incompatible)
+
+    print("-----BLOCK2-------")
+    incompatible = {}
+    print(incompatible)
+    set_incompatible([0,0], 1)
+    print(incompatible)
+    set_incompatible([0,0], 2)
+    set_incompatible([0,0], 3)
+    print(incompatible)
+
+    print("-----BLOCK3-------")
+    incompatible = {}
+    print(incompatible)
+    set_incompatible([0,0], [0,1])
+    print(incompatible)
+    set_incompatible([0,0], [1,1])
+    set_incompatible([0,0], [2,2])
+    set_incompatible([0,0], [3,3])
+    print(incompatible)
+
+# test_incompatible()
+
+def test_set_open_practice():
+    global open_practices
+    open_practices = {}
+    set_open_practice(0, [0,1,2])  # fail, games cannot be key
+    print(open_practices)
+    set_open_practice([0,0], [0,1,2])
+    print(open_practices)
+    set_open_practice([0,1], [0,5,2])
+    print(open_practices)
+    set_open_practice([0,1], [0,1,2])
+    print(open_practices)
+
+# test_set_open_practice()
+
+# shoudl work
+# set1 = {1,2}
+# set1 = set1.union(set([(1,2)]))
+# print(set1)
