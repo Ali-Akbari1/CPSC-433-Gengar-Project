@@ -53,8 +53,8 @@ def find_possible_slots(event_index, schedule):
     possible_slots = []
     current_assignment = None
 
-    if event_index[0] == 'game':
-        game_id = event_index[1]
+    if isinstance(event_index, int):
+        game_id = event_index
         current_assignment = schedule[GAME][game_id][GAME_TIME]
         unassign(event_index, schedule)
 
@@ -80,9 +80,9 @@ def find_possible_slots(event_index, schedule):
                         possible_slots.append(slots_indices)
                         unassign(event_index, schedule)  # Rollback
 
-    elif event_index[0] == 'practice':
-        game_id = event_index[1]
-        prac_id = event_index[2]
+    elif len(event_index) == 2:
+        game_id = event_index[0]
+        prac_id = event_index[1]
         current_assignment = schedule[PRAC][game_id][prac_id]
         unassign(event_index, schedule)
 
