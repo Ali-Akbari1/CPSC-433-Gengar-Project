@@ -26,6 +26,7 @@ inputParser.add_argument("sectionPenalty", type=int)
 args = inputParser.parse_args()
 
 
+
 def get_associated_game(prac):
     return prac.subStr[0:-7]
 
@@ -46,16 +47,19 @@ def get_associated_game(prac):
 #     else:            # F 104-129
 #         return 84+time -16
 
+
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
     
     
     tables = {} # Using a dictionary, key: headers, values: rows
+
                 # tables[someHeader] = [rows] <- list of rows (for Games and Practices I used a Dictionary instead)
                 # tables[Games:/Practices:] = {Input line:index}
     games = [] # games array [(g0, (), ...]
     practices = []  # practices array [ [(), (), (), ]
                     #                   [(), ()], [] ]
+
     
     # slots creation
     slots = main.init_slots(0, 0, 0, 0)
@@ -95,6 +99,7 @@ with open(args.filename, "r") as inputFile:
                 slots[slotInd][0] = int(gameLine[2])    # update the gameMax of specified slot index
                 slots[slotInd][1] = int(gameLine[3])    # update gameMin
                 slotInd+=27 # move to Wednesday
+
                 slots[slotInd][0] = int(gameLine[2])    
                 slots[slotInd][1] = int(gameLine[3])  
                 slotInd+=27 # move to Friday
@@ -110,7 +115,9 @@ with open(args.filename, "r") as inputFile:
                 
                 
         # ####################### Parsing Practice Slots: ########################
+
         # TODO: the case where there is not PRC, so all divisions have it?
+
         if currentHeader == "Practice slots:":
             pracLine = line.split(", ")
             if pracLine[0] == "MO":
@@ -134,6 +141,7 @@ with open(args.filename, "r") as inputFile:
         
         # ####################### Parsing Games: ########################
         if currentHeader == "Games:":
+
             
             # 
             lineCopy = line.split()
@@ -190,12 +198,14 @@ with open(args.filename, "r") as inputFile:
             elif event1 in tables["Practices:"]:
                 event1_index = (0, 0)                       # TODO: not sure what to put for the practice indices still
                 
+
             if event2 in tables["Games:"]:
                 event2_index = tables["Games:"][event2]
             elif event2 in tables["Practices:"]:
                 event2_index = (0, 0)                       # ^^^
                 
             hardConstraints.set_incompatible(event1_index, event2_index)
+
             
             
         elif currentHeader == "Unwanted:":
@@ -235,6 +245,7 @@ with open(args.filename, "r") as inputFile:
             hardConstraints.set_partassign(event_index, slots_indices)
             
             
+
         # create paralelles
         if line:
             line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
@@ -247,8 +258,10 @@ with open(args.filename, "r") as inputFile:
                 continue
             else:
                 tables[currentHeader].append(line)
+
         
         
+
 
 print("\nThese are test prints")
 print(games)
