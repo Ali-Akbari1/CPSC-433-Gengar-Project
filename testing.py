@@ -198,6 +198,8 @@ with open(args.filename, "r") as inputFile:
             # ["CUSA O18 DIV 01", "TU", "8:00"]
             slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
 
+            # TODO there should also be a template game/ practice that can take assignments. 
+            #   the model init takes a game and schedule, so whereever we call that
             hardConstraints.set_partassign(event_index, slots_indices)
             
             
