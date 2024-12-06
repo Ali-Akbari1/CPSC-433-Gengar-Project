@@ -1,6 +1,7 @@
 import copy
 import random
 
+from geneticAlgorithm import find_possible_slots
 import main as m
 from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
     GAME, GAME_CODE, GAME_TIME, \
@@ -10,7 +11,7 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 
 from hardConstraints import assign
 
-##Need way to evaluate
+# Need way to evaluate
 from softConstraints import evaluate_schedule
 
 
@@ -23,7 +24,6 @@ class OrTreeNode:
         # practices: list of list of assigned_slots_tuple
         self.children = children if children is not None else []
 
-
     def is_leaf(self):
         return len(self.children) == 0
 
@@ -33,23 +33,24 @@ class OrTreeNode:
 
 def Constr(pr):
 
-    #Checking for hard constraints
+    # Checking for hard constraints
     (slots, games, practices) = pr
 
     # no slot max below 0
 
-    for slot in slots: 
-        if slot[0] < 0 or slot[2] < 0: #GAMX = 0, PRAX = 2 if indxing consistent
+    for slot in slots:
+        if slot[0] < 0 or slot[2] < 0:  # GAMX = 0, PRAX = 2 if indxing consistent
             return False
     return True
 
-def Eval(pr, preference_map= None, pair_map= None):
+
+def Eval(pr, preference_map=None, pair_map=None):
     return evaluate_schedule(pr, preference_map, pair_map)
 
 
 def is_complete(pr):
 
-    # see if all games and practices are assigned 
+    # see if all games and practices are assigned
     (slots, games, practices) = pr
 
     for g in games:
@@ -70,7 +71,6 @@ def Altern(pr):
             # unassigned game found
             return generate_game_alternatives(pr, gi)
 
-
     # if no unassigned game, check practices
     for gi, p_list in enumerate(practices):
         for pi, p in enumerate(p_list):
@@ -83,7 +83,7 @@ def Altern(pr):
 
 
 def generate_game_alternatives(pr, game_index):
-     # find valid assignments for the game
+    # find valid assignments for the game
     possible_assignments = find_valid_game_assignments(pr, game_index)
     new_nodes = []
     for assignment in possible_assignments:
@@ -92,12 +92,15 @@ def generate_game_alternatives(pr, game_index):
             new_nodes.append(OrTreeNode(new_pr, '?'))
     return new_nodes
 
+
 def generate_practice_alternatives(pr, game_index, practice_index):
     # find valid assignments for the practice
-    possible_assignments = find_valid_practice_assignments(pr, game_index, practice_index)
+    possible_assignments = find_valid_practice_assignments(
+        pr, game_index, practice_index)
     new_nodes = []
     for assignment in possible_assignments:
-        new_pr = apply_assignment(pr, ('practice', game_index, practice_index), assignment)
+        new_pr = apply_assignment(
+            pr, ('practice', game_index, practice_index), assignment)
         if Constr(new_pr):
             new_nodes.append(OrTreeNode(new_pr, '?'))
     return new_nodes
@@ -108,7 +111,8 @@ def apply_assignment(pr, event_key, slots_indices):
     # Reorder pr into [games, practices, slots] for assign()
     (slots, games, practices) = pr
     schedule = [games, practices, slots]
-    success = assign(event_key, slots_indices, schedule)  # assumes assign returns True/False
+    # assumes assign returns True/False
+    success = assign(event_key, slots_indices, schedule)
     if success:
         # Update pr from schedule after assignment
         new_slots = schedule[2]
@@ -136,11 +140,13 @@ def fleaf(nodes, preference_map=None, pair_map=None, r=10):
             if is_complete(pr):
                 cost = 0
             else:
-                cost = 2 + Eval(pr, preference_map, pair_map) + random.randint(0, r)
+                cost = 2 + Eval(pr, preference_map, pair_map) + \
+                    random.randint(0, r)
         scored.append((cost, node))
 
     scored.sort(key=lambda x: x[0])
     return scored[0][1]
+
 
 def ftrans(node):
     # ftrans logic:
@@ -161,6 +167,7 @@ def ftrans(node):
             node.children = alts
     return node
 
+
 def get_leaves(nodes):
     # Return a list of all leaf nodes from a list of nodes (and their descendants)
     leaves = []
@@ -175,6 +182,7 @@ def get_leaves(nodes):
             else:
                 stack.extend(n.children)
     return leaves
+
 
 def or_tree_search(pr, preference_map=None, pair_map=None, max_iter=1000):
     #  search:
@@ -200,11 +208,19 @@ def or_tree_search(pr, preference_map=None, pair_map=None, max_iter=1000):
 
 ################# STUB FUNCTIONS #################
 def find_valid_game_assignments(pr, game_index):
-    # TODO: Implement logic based on your event alignment rules
-    # Returning an empty list for now
-    return []
+    slots, games, practices = pr
+    schedule = [games, practices, slots]
+
+    valid_slots = find_possible_slots(game_index, schedule)
+
+    return valid_slots
+
 
 def find_valid_practice_assignments(pr, game_index, practice_index):
-    # TODO: Implement logic based on your event alignment rules
-    # Returning an empty list for now
-    return []
+    slots, games, practices = pr
+    schedule = [games, practices, slots]
+
+    practice_event = (game_index, practice_index)
+    valid_slots = find_possible_slots(practice_event, schedule)
+
+    return valid_slots
