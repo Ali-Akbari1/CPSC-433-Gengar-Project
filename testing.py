@@ -101,16 +101,10 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('M', gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])    # update the gameMax of specified slot index
                 slots[slotInd][1] = int(gameLine[3])    # update gameMin
-                slots[slotInd+1][0] = int(gameLine[2])  # half hour slots, Monday games are one hour
-                slots[slotInd+1][1] = int(gameLine[3]) 
             else:
                 slotInd = main.get_slot_index('T', gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])    
                 slots[slotInd][1] = int(gameLine[3])
-                slots[slotInd+1][0] = int(gameLine[2])  # half hour slots, Tuesday games are 90 mins
-                slots[slotInd+1][1] = int(gameLine[3])
-                slots[slotInd+2][0] = int(gameLine[2])  # half hour slots, Tuesday games are 90 mins
-                slots[slotInd+2][1] = int(gameLine[3])
 
 
         # ####################### Parsing Practice Slots: ########################
@@ -124,24 +118,14 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('M', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])   
                 slots[slotInd][3] = int(pracLine[3]) 
-                slots[slotInd+1][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 60 mins
-                slots[slotInd+1][3] = int(pracLine[3])
             elif pracLine[0] == "TU":
                 slotInd = main.get_slot_index('T', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])    
                 slots[slotInd][3] = int(pracLine[3])
-                slots[slotInd+1][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 60 mins
-                slots[slotInd+1][3] = int(pracLine[3])
             else:
                 slotInd = main.get_slot_index('F', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])    
                 slots[slotInd][3] = int(pracLine[3])
-                slots[slotInd+1][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 120 mins
-                slots[slotInd+1][3] = int(pracLine[3])
-                slots[slotInd+2][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 120 mins
-                slots[slotInd+2][3] = int(pracLine[3])
-                slots[slotInd+3][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 120 mins
-                slots[slotInd+3][3] = int(pracLine[3])
 
         # ####################### Parsing Games: ########################
         if currentHeader == "Games:":
@@ -149,7 +133,7 @@ with open(args.filename, "r") as inputFile:
 
             # 
             lineCopy = line.split()
-            age = int(lineCopy[1][1:2])     # age/tier
+            age = int(lineCopy[1][1:3])     # age/tier.  Changed to take 2 numbers instead of 1 number for age
             division = int(lineCopy[3][1:])
 
             # TODO: game index creation logic
