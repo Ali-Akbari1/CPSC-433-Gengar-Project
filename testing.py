@@ -188,7 +188,7 @@ with open(args.filename, "r") as inputFile:
                         tables["Practices:"][line] = [tables["Games:"][key], int(pracArr[-1])]
                     
             elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
-                print(pracArr)
+                # print(pracArr)
                 tables["Practices:"][line] = [tables["Games:"][subString], int(pracArr[-1])] 
         
         # ####################### Parsing Not Compatible: ########################
@@ -200,13 +200,13 @@ with open(args.filename, "r") as inputFile:
             if event1 in tables["Games:"]:
                 event1_index = tables["Games:"][event1]
             elif event1 in tables["Practices:"]:
-                event1_index = (0, 0)                       # TODO: not sure what to put for the practice indices still
+                event1_index = tables["Practices:"][event1]                       # TODO: not sure what to put for the practice indices still
                 
 
             if event2 in tables["Games:"]:
                 event2_index = tables["Games:"][event2]
             elif event2 in tables["Practices:"]:
-                event2_index = (0, 0)                       # ^^^
+                event2_index = tables["Practices:"][event2]                       # ^^^
                 
             hardConstraints.set_incompatible(event1_index, event2_index)
 
@@ -230,19 +230,18 @@ with open(args.filename, "r") as inputFile:
             # CUSA O18 DIV 01 PRC 01, FR, 8:00
             lineSplit = line.split(",")
             lineStrip = [x.strip() for x in lineSplit]
+
             event = lineStrip[0]
 
             if event in tables["Games:"]:
                 event_index = tables["Games:"][event]
             elif event in tables["Practices:"]:
-                associated_game = get_associated_game(event)
-                game_index = tables["Games:"][associated_game]
-                event_index = (game_index, practice_index)# HELP: not sure what to put for the practice indices still
-                # TODO how are you gettting the practice index?
+                event_index = tables["Practices:"][event]
 
             # CUSA O18 DIV 01, TU, 8:00
             # ["CUSA O18 DIV 01", "TU", "8:00"]
-            slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
+            print(lineStrip[1])
+            slots_indices = main.get_slot_index(lineStrip[-2], lineStrip[-1])
 
             # TODO there should also be a template game/ practice that can take assignments. 
             #   the model init takes a game and schedule, so whereever we call that
