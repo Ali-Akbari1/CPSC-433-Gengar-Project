@@ -15,6 +15,7 @@ incompatible = {} # dictionary incompatible[event_index] = {event_indices}   <- 
 # bandaids for bullet holes, worked in Breaking Bad
 open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices].  append on taking in
 upper_levels = {} # dictionary of different upper level clusters. Different divisions would not collide (I think)
+partassign = {} # dictionary of partial assignments partassign[event_index] = (required slots)
 
 # --------------------------- assignment ---------------------------
 # - checks all slots_indices can be assigned to (max > 0) 
@@ -65,7 +66,12 @@ def assign(event_index, slots_indices, schedule, set=True, DEBUG=False):
         if DEBUG:
             print("Assign failed. Evening class not in evening slot: ", event_index, slots_indices)
         return False
-    
+    if not assign_helper_partassign(slots_indices, event_index, schedule):
+        if DEBUG:
+            print("Assign failed. Partassign incorrect: ", event_index, slots_indices)
+        return False
+
+
     # if integer, event is a game (one index)
     if(isinstance(event_index, int)):
         # check the assignment can be done
@@ -284,6 +290,16 @@ def assign_helper_upper_level(slot_indices, event_index, schedule, DEBUG=False):
     
     return True
 
+def assign_helper_partassign(slot_indices, event_index, schedule):
+    if not isinstance(event_index, int):
+        event_index = tuple(event_index)
+
+    if event_index in partassign and slot_indices != partassign[event_index]:
+        return False
+    return True
+            
+
+
 # just for mutate
 def unassign(event_index, schedule, DEBUG=False):
     # game
@@ -378,12 +394,6 @@ def set_zero_game_max(slot_indices, schedule):
         schedule[SLOT][slot][GAMN] = 0
     return schedule
 
-
-# upper_levels = [] # array of different upper level clusters. Different divisions would not collide (I think)
-# upper_level = {} # set  upper_level = {slot_index, slot_index, ..., slot_index}  check for membership before assignment
-
-# TODO makign sets in unwanted
-
 def set_unwanted(event_index, slots_indices):
     slots_indices = tuple(slots_indices)
     if not isinstance(event_index, int):
@@ -476,6 +486,18 @@ def set_upper_level(game_id, game_indices, DEBUG=False):
     else:
         upper_levels[game_id] = upper_levels[game_id].union(set(game_indices))
     return True
+
+def set_partassign(slots_indices, event_index):
+    slots_indices = tuple(slots_indices)
+    if not isinstance(event_index, int):
+        event_index = tuple(event_index)
+
+    if event_index not in partassign:
+        partassign[event_index] = slots_indices
+    else:
+        # true if double, false if different
+        return slots_indices == partassign[event_index]
+
 
 # set1 = set([1,2])
 # print(set1)
@@ -686,7 +708,7 @@ def test_set_open_practice():
     set_open_practice([0,1], [0,1,2])
     print(open_practices)
 
-# test_set_open_practice()
+test_set_open_practice()
 
 # shoudl work
 # set1 = {1,2}
