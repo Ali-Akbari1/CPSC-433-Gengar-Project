@@ -67,6 +67,7 @@ with open(args.filename, "r") as inputFile:
         
         # ####################### Parsing Game Slots: ########################
         # MO = 0-12, TU = 13-38, WE = 39-51, TH = 52-76, FR = 
+        # TODO our slots are half hour, each entry is 2 or three slots
         if currentHeader == "Game slots:":
             gameLine = line.split(", ")    # [Day (ie MO), time (ie 8:00), gameMax, gameMin]
             if gameLine[0] == "MO":        # assign to Wednesday and Friday too
@@ -80,6 +81,7 @@ with open(args.filename, "r") as inputFile:
                 
                 
         # ####################### Parsing Practice Slots: ########################
+        # TODO our slots are half hour, each entry is 2 or 4 slots
         if currentHeader == "Practice slots:":
             pracLine = line.split(", ")
             if pracLine[0] == "MO":        # assign to Wednesday and Friday too
@@ -150,7 +152,9 @@ with open(args.filename, "r") as inputFile:
             
             hardConstraints.set_unwanted()
             
-            
+        # TODO preferences
+        # TODO pair
+        # TODO partial assign
             
             
             
