@@ -1,0 +1,23 @@
+Name:
+Fail: two upper level games cannot be assigned same slot. 
+
+Game slots:
+MO, 8:00, 2, 0
+
+Practice slots:
+
+Games:
+CMSA U15T3 DIV 01
+CMSA U15T3 DIV 02
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:
