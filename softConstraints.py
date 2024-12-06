@@ -29,9 +29,11 @@ def eval_pref(schedule, preference_map):
 
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
-    for game_id, paired_game in pair_map.items():
-        game_slot = schedule[1][game_id][1]
-        paired_slot = schedule[1][paired_game][1]
+    for game1id in pair_map:
+        print(game1id)
+        game2id = pair_map[game1id]
+        game_slot = schedule[1][int(game1id)][1]
+        paired_slot = schedule[1][game2id][1]
         if game_slot != paired_slot:
             penalty += pen_notpaired
     return penalty
@@ -42,7 +44,7 @@ def eval_secdiff(schedule, tier_map, pen_section):
     for slot_index, slot in enumerate(schedule[0]):
         # List of leagues in the current slot
         leagues_in_slot = [
-            game[GAME_CODE] for game in schedule[GAME] if slot_index in game[GAME_TIME]
+            game[GAME_CODE] for game in schedule[1] if slot_index in game[GAME_TIME]
         ]
         for league1 in leagues_in_slot:
             for league2 in leagues_in_slot:
