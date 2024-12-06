@@ -1,4 +1,3 @@
- Sample input file (inconsistent spacing)
 Name:
 ShortExample
 Game slots:
