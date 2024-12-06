@@ -262,12 +262,13 @@ with open(args.filename, "r") as inputFile:
         
 
 
-print("\nThese are test prints")
-print(games)
-print(practices)
-print(slots)
+# print("\nThese are test prints")
+# print(games)
+# print(practices)
+# print(slots)
 
 
+main.print_schedule([games, practices, slots], 1, 1)
 
 
 
