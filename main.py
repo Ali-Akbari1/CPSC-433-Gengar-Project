@@ -26,7 +26,7 @@ EVENING_BOUND = 20   # 8am start, this should be 6pm
 # placeholder, parser can assign as needed
 def init_slots(game_max, game_min, practice_max, practice_min, DEBUG=False):
     slots = []
-    for i in range((SLOTS_PER_DAY*5)): # mul by 5 all slots
+    for i in range((SLOTS_PER_DAY*3)): # mul by 3 MTF
         slots.append([game_max, game_min, practice_max, practice_min])
         if(DEBUG and i<HOURS_PER_DAY*2):
             if(i%2 == 0):
