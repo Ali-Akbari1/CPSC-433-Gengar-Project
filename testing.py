@@ -71,9 +71,6 @@ with open(args.filename, "r") as inputFile:
                 games.append([-1-main.EVENING_CONST, ()])
                 
             
-                
-            
-            
             
         elif line:
             line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
