@@ -101,28 +101,22 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('M', gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])    # update the gameMax of specified slot index
                 slots[slotInd][1] = int(gameLine[3])    # update gameMin
-                # slotInd+=27 # move to Wednesday
-
-                # slots[slotInd][0] = int(gameLine[2])    
-                # slots[slotInd][1] = int(gameLine[3])  
-                # slotInd+=27 # move to Friday
-                # slots[slotInd][0] = int(gameLine[2])    
-                # slots[slotInd][1] = int(gameLine[3])  
+                slots[slotInd+1][0] = int(gameLine[2])  # half hour slots, Monday games are one hour
+                slots[slotInd+1][1] = int(gameLine[3]) 
             else:
                 slotInd = main.get_slot_index('T', gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])    
                 slots[slotInd][1] = int(gameLine[3])
-                slotInd+=27 # move to Thurday
-                slots[slotInd][0] = int(gameLine[2])    
-                slots[slotInd][1] = int(gameLine[3])
-                # slotInd+=27 # move to Thurday
-                # slots[slotInd][0] = int(gameLine[2])    
-                # slots[slotInd][1] = int(gameLine[3])
+                slots[slotInd+1][0] = int(gameLine[2])  # half hour slots, Tuesday games are 90 mins
+                slots[slotInd+1][1] = int(gameLine[3])
+                slots[slotInd+2][0] = int(gameLine[2])  # half hour slots, Tuesday games are 90 mins
+                slots[slotInd+2][1] = int(gameLine[3])
 
 
         # ####################### Parsing Practice Slots: ########################
 
         # TODO: the case where there is not PRC, so all divisions have it?
+        # Yes, there is a structure in hardConstraints for that. We can populate it, but it will take extra work to get it working. 
 
         if currentHeader == "Practice slots:":
             pracLine = line.split(", ")
@@ -130,20 +124,24 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('M', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])   
                 slots[slotInd][3] = int(pracLine[3]) 
-                # slotInd+=27
-                # slots[slotInd][2] = int(pracLine[2])   
-                # slots[slotInd][3] = int(pracLine[3]) 
+                slots[slotInd+1][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 60 mins
+                slots[slotInd+1][3] = int(pracLine[3])
             elif pracLine[0] == "TU":
                 slotInd = main.get_slot_index('T', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])    
                 slots[slotInd][3] = int(pracLine[3])
-                # slotInd+=27
-                # slots[slotInd][2] = int(pracLine[2])    
-                # slots[slotInd][3] = int(pracLine[3])
+                slots[slotInd+1][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 60 mins
+                slots[slotInd+1][3] = int(pracLine[3])
             else:
                 slotInd = main.get_slot_index('F', pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])    
                 slots[slotInd][3] = int(pracLine[3])
+                slots[slotInd+1][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 120 mins
+                slots[slotInd+1][3] = int(pracLine[3])
+                slots[slotInd+2][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 120 mins
+                slots[slotInd+2][3] = int(pracLine[3])
+                slots[slotInd+3][2] = int(pracLine[2])  # half hour slots, Tuesday practices are 120 mins
+                slots[slotInd+3][3] = int(pracLine[3])
 
         # ####################### Parsing Games: ########################
         if currentHeader == "Games:":
