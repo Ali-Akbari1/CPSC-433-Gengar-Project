@@ -52,6 +52,7 @@ with open(args.filename, "r") as inputFile:
     
     tables = {} # Using a dictionary, key: headers, values: rows
                 # tables[someHeader] = [rows] <- list of rows (for Games and Practices I used a Dictionary instead)
+                # tables[Games:/Practices:] = {Input line:index}
     games = [] # games array [(g0, (), ...]
     practices = []  # practices array [ [(), (), (), ]
                     #                   [(), ()], [] ]
@@ -109,6 +110,7 @@ with open(args.filename, "r") as inputFile:
                 
                 
         # ####################### Parsing Practice Slots: ########################
+        # TODO: the case where there is not PRC, so all divisions have it?
         if currentHeader == "Practice slots:":
             pracLine = line.split(", ")
             if pracLine[0] == "MO":
@@ -162,8 +164,20 @@ with open(args.filename, "r") as inputFile:
                 # print(tables["Games:"])
                 if subString in tables["Games:"]:
                     practices[tables["Games:"][subString]].append(())
-            tables["Practices:"][line] = practiceCounter
-            practiceCounter += 1
+                    break                                                # add the index of the corresponding game, append an empty tuple
+            pracArr = line.split()
+            
+            # case where 'DIV' was dropped, every division of this tier gets the practice
+            if pracArr[-4] != "DIV":
+                tierStr = pracArr[0] + " " + pracArr[1]
+                for key in tables["Games:"]:
+                    if tierStr in key:
+                        practices[tables["Games:"][key]].append(())
+                        tables["Practices:"][line] = [tables["Games:"][key], int(pracArr[-1])]
+                    
+            elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
+                print(pracArr)
+                tables["Practices:"][line] = [tables["Games:"][subString], int(pracArr[-1])] 
         
         # ####################### Parsing Not Compatible: ########################
         elif currentHeader == "Not compatible:":
@@ -186,15 +200,39 @@ with open(args.filename, "r") as inputFile:
             
         elif currentHeader == "Unwanted:":
             unwantedSplit = line.split(", ")
-            gameStr = unwantedSplit[0]
-            if gameStr in tables["Games:"]:
-                game_index = tables["Games:"][gameStr]
+            eventStr = unwantedSplit[0]
+            if eventStr in tables["Games:"]:
+                game_index = tables["Games:"][eventStr]
                 hardConstraints.set_unwanted(game_index, [main.get_slot_index(unwantedSplit[1], unwantedSplit[2])])
                 # print(hardConstraints.unwanted)
+            if eventStr in tables["Practices:"]:
+                hardConstraints.set_unwanted(tables["Practices:"][eventStr], [main.get_slot_index(unwantedSplit[1], unwantedSplit[2])])
             
             
-        
-            
+        # # Nathan
+        # elif currentHeader == "Partial assignments:":
+        #     # CUSA O18 DIV 01, MO, 8:00
+        #     # CUSA O18 DIV 01, TU, 8:00
+        #     # CUSA O18 DIV 01 PRC 01, FR, 8:00
+        #     lineSplit = line.split(",")
+        #     lineStrip = [x.strip() for x in lineSplit]
+        #     event = lineStrip[0]
+
+        #     if event in tables["Games:"]:
+        #         event_index = tables["Games:"][event]
+        #     elif event in tables["Practices:"]:
+        #         associated_game = get_associated_game(event)
+        #         game_index = tables["Games:"][associated_game]
+        #         event_index = (game_index, practice_index)# HELP: not sure what to put for the practice indices still
+        #         # TODO how are you gettting the practice index?
+
+            # CUSA O18 DIV 01, TU, 8:00
+            # ["CUSA O18 DIV 01", "TU", "8:00"]
+            slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
+
+            # TODO there should also be a template game/ practice that can take assignments. 
+            #   the model init takes a game and schedule, so whereever we call that
+            hardConstraints.set_partassign(event_index, slots_indices)
             
             
         # create paralelles
@@ -223,5 +261,3 @@ print(slots)
 
             
 # TODO integrate the soft constraint integer modifiers
-
-
