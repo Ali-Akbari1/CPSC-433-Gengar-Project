@@ -92,3 +92,30 @@ def print_schedule(schedule, events=True, slots=False):
         print("\n-------- SLOTS --------")
         for s, slot in enumerate(schedule[SLOT]):
             print(s, slot)
+
+
+    
+
+# Game number key
+# - positive number league/age, young divisions
+# - positive number plus constant, = evening, young divisions
+# - negative number for league/ age group 16 and above
+# - negative number minus constant = evening, old divisions
+gameCounter = 0
+def addGame(tables, games, line):
+    lineCopy = line.split()
+    age = lineCopy[1][1:2]
+    division = lineCopy[3][1:]
+    
+    if (age < 16) and (division < 9):
+        games.append([1, ()])
+    elif (age < 16) and (division >= 9):
+        games.append([1+EVENING_CONST, ()]) 
+    elif (age >= 16) and (division < 9):
+        games.append([-1, ()])
+    elif (age >= 16) and (division >= 9):
+        games.append([-1-EVENING_CONST, ()])
+        
+    tables["Games:"][line] = gameCounter # for quick referencing the index of game strings, used in practices
+    gameCounter += 1
+    
