@@ -26,6 +26,9 @@ inputParser.add_argument("sectionPenalty", type=int)
 args = inputParser.parse_args()
 
 
+def get_associated_game(prac):
+    return prac.subStr[0:-7]
+
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
     
@@ -43,6 +46,22 @@ with open(args.filename, "r") as inputFile:
     validHeader = ("Name:", "Game slots:", "Practice slots:", "Games:", "Practices:", "Not compatible:", "Unwanted:", "Preferences:", "Pair:", "Partial assignments:") # a set of strings containing headers
     currentHeader = None
     
+    # TODO strip everything:
+    #    string = "CASA U19 DIV01, CASA U19 DIV02"
+    #    print(string.split(", "))
+    #    > ['CASA U19 DIV01', 'CASA U19 DIV02']                 # good 
+
+    #    string = "CASA U19 DIV01,              CASA U19 DIV02"
+    #    print(string.split(", "))
+    #    > ['CASA U19 DIV01', '             CASA U19 DIV02']    # bad 
+
+    
+    #    string = "CASA U19 DIV01,              CASA U19 DIV02"
+    #    print(string.split(", "))
+    #    stripped = [x.strip() for x in string.split(",")]
+    #    print(stripped)
+    #    > ['CASA U19 DIV01', '             CASA U19 DIV02']    # bad 
+    #    > ['CASA U19 DIV01', 'CASA U19 DIV02']                 # good
     
     for line in inputFile:
         line = line.strip()
@@ -137,6 +156,9 @@ with open(args.filename, "r") as inputFile:
             if event1 in tables["Games:"]:
                 event1_index = tables["Games:"][event1]
             elif event1 in tables["Practices:"]:
+                # TODO (associated_game, practice_number)
+                # associated_game = take the practice flag and number off and search for games
+                # practice_number = take the length of the practice array before appending, then append the practice (zero index)
                 event1_index = (0, 0)                       # HELP: not sure what to put for the practice indices still
                 
             if event2 in tables["Games:"]:
@@ -156,7 +178,27 @@ with open(args.filename, "r") as inputFile:
         # TODO pair
         # TODO partial assign
             
-            
+        elif currentHeader == "Partial assignments:":
+            # CUSA O18 DIV 01, MO, 8:00
+            # CUSA O18 DIV 01, TU, 8:00
+            # CUSA O18 DIV 01 PRC 01, FR, 8:00
+            lineSplit = line.split(",")
+            lineStrip = [x.strip() for x in lineSplit]
+            event = lineStrip[0]
+
+            if event in tables["Games:"]:
+                event_index = tables["Games:"][event]
+            elif event in tables["Practices:"]:
+                associated_game = get_associated_game(event)
+                game_index = tables["Games:"][associated_game]
+                event_index = (game_index, practice_index)# HELP: not sure what to put for the practice indices still
+                # TODO how are you gettting the practice index?
+
+            # CUSA O18 DIV 01, TU, 8:00
+            # ["CUSA O18 DIV 01", "TU", "8:00"]
+            slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
+
+            hardConstraints.set_partassign(event_index, slots_indices)
             
             
         # create paralelles
@@ -177,8 +219,8 @@ with open(args.filename, "r") as inputFile:
 # print(games)
 # print(practices)
 
-
-
+# string = "CASA U19 DIV01, CASA U19 DIV02"
+# print(string.split(", "))
 
 # # --------------------------- Populate Hard Constraints ---------------------------
 # for rows in tables["Not compatible:"]:

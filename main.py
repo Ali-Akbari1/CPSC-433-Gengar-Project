@@ -57,9 +57,9 @@ def get_slot_index(day, time):
         res += 1
 
     # monday is default, nothing needs to be done
-    if day == "t" or day == "T":
+    if day == "t" or day == "T" or day=="TU":
         res += SLOTS_PER_DAY
-    elif day == "f" or day == "F":
+    elif day == "f" or day == "F" or day=="FR":
         res += SLOTS_PER_DAY * 2
     return res
 

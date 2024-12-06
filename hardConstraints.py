@@ -708,9 +708,24 @@ def test_set_open_practice():
     set_open_practice([0,1], [0,1,2])
     print(open_practices)
 
-test_set_open_practice()
+# test_set_open_practice()
 
 # shoudl work
 # set1 = {1,2}
 # set1 = set1.union(set([(1,2)]))
 # print(set1)
+
+# string = "CASA U19 DIV01, CASA U19 DIV02"
+# string = "CASA U19 DIV01,              CASA U19 DIV02"
+# print(string.split(", "))
+# stripped = [x.strip() for x in string.split(",")]
+# print(stripped)
+
+# dict = {0: ["a", "b"], 1: 2}
+# print(dict[0]["b"])
+
+
+def get_associated_game(prac):
+    return prac[0:-7]
+
+print(get_associated_game("FIDE O19 DIV 01 PRC 02"))
