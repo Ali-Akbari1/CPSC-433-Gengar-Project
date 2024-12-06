@@ -260,7 +260,7 @@ def assign_helper_evening(slot_indices, event_index, schedule, DEBUG=False):
 # half assed 
 def assign_helper_open_practice(slot_indices, event_index, schedule, DEBUG=False):
     # game or not in open practices return True
-    if isinstance(event_index, int) or (not tuple(slot_indices) in open_practices):
+    if isinstance(event_index, int) or (not tuple(event_index) in open_practices):
         return True
     
     for game_index in open_practices[tuple(event_index)]:
@@ -380,7 +380,6 @@ def set_zero_game_max(slot_indices, schedule):
     return schedule
 
 
-# # bandaids for bullet holes, worked in Breaking Bad
 # open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices].  append on taking in
 # upper_levels = [] # array of different upper level clusters. Different divisions would not collide (I think)
 # upper_level = {} # set  upper_level = {slot_index, slot_index, ..., slot_index}  check for membership before assignment
@@ -450,6 +449,22 @@ def set_incompatible(event_index1, event_index2):
         else:
             incompatible[event_index2] = incompatible[tuple(event_index2)].union(set([event_index1]))
 
+# adds game indices to the set in open_practices[event_index]
+def set_open_practice(event_index, game_indices, DEBUG=False):
+    if isinstance(event_index, int):
+        if DEBUG:
+            print("Failed: set_open_practice only works for practices. ")
+        return False
+    if isinstance(game_indices, int):
+        game_indices = [game_indices]
+    
+    event_index = tuple(event_index)
+    if event_index not in open_practices:
+        open_practices[event_index] = set(game_indices)
+    else:
+        open_practices[event_index] = open_practices[event_index].union(set(game_indices))
+    return True 
+    
 
 # ########################## Tests ##########################
 
@@ -645,3 +660,21 @@ def test_incompatible():
 
 # test_incompatible()
 
+def test_set_open_practice():
+    global open_practices
+    open_practices = {}
+    set_open_practice(0, [0,1,2])  # fail, games cannot be key
+    print(open_practices)
+    set_open_practice([0,0], [0,1,2])
+    print(open_practices)
+    set_open_practice([0,1], [0,5,2])
+    print(open_practices)
+    set_open_practice([0,1], [0,1,2])
+    print(open_practices)
+
+# test_set_open_practice()
+
+# shoudl work
+# set1 = {1,2}
+# set1 = set1.union(set([(1,2)]))
+# print(set1)
