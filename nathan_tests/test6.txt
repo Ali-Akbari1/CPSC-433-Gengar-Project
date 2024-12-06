@@ -1,0 +1,27 @@
+Name:
+Partial assign to game. CMSA U13T3 DIV 01 must be at 10 
+
+Game slots:
+MO, 8:00, 1, 0
+MO, 9:00, 1, 0
+MO, 10:00, 1, 0
+MO, 11:00, 1, 0
+MO, 12:00, 1, 0
+
+Practice slots:
+
+Games:
+CMSA U13T3 DIV 01
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:
+CMSA U13T3 DIV 01, MO, 10:00

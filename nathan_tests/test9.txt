@@ -1,0 +1,22 @@
+Name:
+Fail: staff meeting should not allow games TU 11-12:30. 
+
+Game slots:
+TU, 11:00, 1, 0
+
+Practice slots:
+
+Games:
+CMSA U15T3 DIV 01
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:

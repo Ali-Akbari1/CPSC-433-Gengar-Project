@@ -1,0 +1,32 @@
+Name:
+3 game, 3 practice, force collision between games and practices. No other constraints
+
+Game slots:
+MO, 8:00, 1, 1
+MO, 9:00, 1, 1
+MO, 10:00, 1, 1
+
+Practice slots:
+MO, 8:00, 1, 1
+MO, 9:00, 1, 1
+MO, 10:00, 1, 1
+
+Games:
+CMSA U13T3 DIV 01
+CMSA U13T3 DIV 02
+CMSA U13T3 DIV 03
+
+Practices:
+CMSA U13T3 DIV 01 PRC 01
+CMSA U13T3 DIV 01 PRC 02
+CMSA U13T3 DIV 01 PRC 03
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:

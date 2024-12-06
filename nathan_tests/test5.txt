@@ -1,0 +1,22 @@
+Name:
+Partial assign to game where no slot exists. 
+
+Game slots:
+
+Practice slots:
+
+Games:
+CMSA U13T3 DIV 01
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:
+CMSA U13T3 DIV 01, MO, 8:00
