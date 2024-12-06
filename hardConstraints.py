@@ -708,7 +708,7 @@ def test_set_open_practice():
     set_open_practice([0,1], [0,1,2])
     print(open_practices)
 
-test_set_open_practice()
+# test_set_open_practice()
 
 # shoudl work
 # set1 = {1,2}
