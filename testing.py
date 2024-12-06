@@ -2,7 +2,7 @@ import argparse
 import re
 import hardConstraints
 import main
-import softConstraints
+import model
 
 # --------------------------- Setup ---------------------------
 # Create command line arguments
@@ -52,6 +52,9 @@ def get_associated_game(prac):
 with open(args.filename, "r") as inputFile:
 
 
+    preference_map = {}
+    pair_map = {}
+    tier_map = {}
     tables = {} # Using a dictionary, key: headers, values: rows
 
                 # tables[someHeader] = [rows] <- list of rows (for Games and Practices I used a Dictionary instead)
@@ -165,6 +168,8 @@ with open(args.filename, "r") as inputFile:
             practices.append([])
 
             tables["Games:"][line] = gameCounter # for quick referencing the index of game strings, used in practices
+            tier_key = " ".join(line.split()[:2])  # Extracting the tier, e.g., "CSSC O19T1"
+            tier_map[line] = tier_key
             gameCounter += 1
 
         # ####################### Parsing Practices: ########################
@@ -201,12 +206,10 @@ with open(args.filename, "r") as inputFile:
             elif event1 in tables["Practices:"]:
                 event1_index = tables["Practices:"][event1]                       # TODO: not sure what to put for the practice indices still
 
-
             if event2 in tables["Games:"]:
                 event2_index = tables["Games:"][event2]
             elif event2 in tables["Practices:"]:
                 event2_index = tables["Practices:"][event2]                       # ^^^
-
             hardConstraints.set_incompatible(event1_index, event2_index)
 
 
@@ -239,12 +242,38 @@ with open(args.filename, "r") as inputFile:
 
             # CUSA O18 DIV 01, TU, 8:00
             # ["CUSA O18 DIV 01", "TU", "8:00"]
-            print(lineStrip[1])
             slots_indices = main.get_slot_index(lineStrip[-2], lineStrip[-1])
 
             # TODO there should also be a template game/ practice that can take assignments. 
             #   the model init takes a game and schedule, so whereever we call that
             hardConstraints.set_partassign([slots_indices], event_index)
+
+        # ------------------- Parsing Preferences -------------------
+        elif currentHeader == "Preferences:":
+            # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
+            pref_parts = line.split(", ")
+            day, time, game, weight = pref_parts
+            slot = f"{day}, {time}"
+            preference_map[(game, slot)] = int(weight)
+
+        # ------------------- Parsing Pair -------------------
+        elif currentHeader == "Pair:":
+            # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
+            game1, game2 = line.split(", ")
+            pair_map[game1] = game2
+        
+        # # ------------------- Parsing Games (for Tier Map) -------------------
+        # elif currentHeader == "Games:":
+        #     # Example: CSSC O19T1 DIV 01
+        #     tables[currentHeader][line] = gameCounter
+        #     games.append([1, ()])  # Example game initialization
+        #     tier_key = " ".join(line.split()[:2])  # Extracting the tier, e.g., "CSSC O19T1"
+        #     tier_map[line] = tier_key
+        #     gameCounter += 1
+        
+        # ------------------- Parsing Other Sections -------------------
+        # Handle other sections like Game slots, Practice slots, Not compatible, etc.
+        # (Use the code you already provided for these.)
 
 
 
@@ -261,9 +290,17 @@ with open(args.filename, "r") as inputFile:
             else:
                 tables[currentHeader].append(line)
 
+weights = [args.minfilledWeight, args.prefWeight, args.pairWeight, args.secdiffWeight, args.secdiffWeight]
+penalties = [args.gameminPenalty, args.practiceminPenalty, args.notpairedPenalty, args.sectionPenalty]
 
 
+myModel = model.Model(slots, games, practices, preference_map, pair_map, tier_map, weights, penalties)
 
+
+inputParser.add_argument("gameminPenalty", type=int)
+inputParser.add_argument("practiceminPenalty", type=int)
+inputParser.add_argument("notpairedPenalty", type=int)
+inputParser.add_argument("sectionPenalty", type=int)
 
 # print("\nThese are test prints")
 # print(games)
@@ -271,4 +308,8 @@ with open(args.filename, "r") as inputFile:
 # print(slots)
 
 
+    # Print the maps for debugging
+print("Preference Map:", preference_map)
+print("Pair Map:", pair_map)
+print("Tier Map:", tier_map)
 main.print_schedule([games, practices, slots], 1, 1)
