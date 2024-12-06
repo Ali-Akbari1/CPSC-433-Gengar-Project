@@ -226,13 +226,13 @@ with open(args.filename, "r") as inputFile:
         #         event_index = (game_index, practice_index)# HELP: not sure what to put for the practice indices still
         #         # TODO how are you gettting the practice index?
 
-            # CUSA O18 DIV 01, TU, 8:00
-            # ["CUSA O18 DIV 01", "TU", "8:00"]
-            slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
+            # # CUSA O18 DIV 01, TU, 8:00
+            # # ["CUSA O18 DIV 01", "TU", "8:00"]
+            # slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
 
-            # TODO there should also be a template game/ practice that can take assignments. 
-            #   the model init takes a game and schedule, so whereever we call that
-            hardConstraints.set_partassign(event_index, slots_indices)
+            # # TODO there should also be a template game/ practice that can take assignments. 
+            # #   the model init takes a game and schedule, so whereever we call that
+            # hardConstraints.set_partassign(event_index, slots_indices)
             
             
         # create paralelles
