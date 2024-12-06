@@ -292,8 +292,8 @@ with open(args.filename, "r") as inputFile:
 
 weights = [args.minfilledWeight, args.prefWeight, args.pairWeight, args.secdiffWeight]
 
-
 penalties = [args.gameminPenalty, args.practiceminPenalty, args.notpairedPenalty, args.sectionPenalty]
+
 
 
 myModel = model.Model(slots, games, practices, preference_map, pair_map, tier_map, weights, penalties)

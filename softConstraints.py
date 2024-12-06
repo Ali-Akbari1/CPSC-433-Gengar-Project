@@ -21,8 +21,8 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 def eval_pref(schedule, preference_map):
     penalty = 0
     for game_id, game_slots in enumerate(schedule[1]):
-        if game_slots[GAME_TIME]:
-            for slot in game_slots[GAME_TIME]:
+        if game_slots[1]:
+            for slot in game_slots[1]:
                 penalty += preference_map.get((game_id, slot), 0)
     return penalty
 
@@ -30,8 +30,8 @@ def eval_pref(schedule, preference_map):
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
     for game_id, paired_game in pair_map.items():
-        game_slot = schedule[1][game_id][GAME_TIME]
-        paired_slot = schedule[1][paired_game][GAME_TIME]
+        game_slot = schedule[1][game_id][1]
+        paired_slot = schedule[1][paired_game][1]
         if game_slot != paired_slot:
             penalty += pen_notpaired
     return penalty
