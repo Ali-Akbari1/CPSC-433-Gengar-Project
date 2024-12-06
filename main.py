@@ -92,3 +92,4 @@ def print_schedule(schedule, events=True, slots=False):
         print("\n-------- SLOTS --------")
         for s, slot in enumerate(schedule[SLOT]):
             print(s, slot)
+        
