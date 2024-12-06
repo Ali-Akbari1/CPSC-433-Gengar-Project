@@ -117,5 +117,6 @@ def addGame(tables, games, line):
         games.append([-1-EVENING_CONST, ()])
         
     tables["Games:"][line] = gameCounter # for quick referencing the index of game strings, used in practices
+    _ = None
     gameCounter += 1
     

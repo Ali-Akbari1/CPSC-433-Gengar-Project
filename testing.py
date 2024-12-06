@@ -1,6 +1,6 @@
 import argparse
 import re
-import hardConstraints
+# import hardConstraints
 import main
 import softConstraints
 
@@ -44,8 +44,10 @@ with open(args.filename, "r") as inputFile:
         if line in validHeader:
             if currentHeader != "Games:" or "Practice:":
                 tables[currentHeader] = [] # empty list with key header, list will hold rows
+                _ = None
             else:
                 tables[currentHeader] = {}
+                _ = None
             continue
 
         # empty line
@@ -56,6 +58,8 @@ with open(args.filename, "r") as inputFile:
         
         # Upon reaching Games: header we will create arrays for games
         if currentHeader == "Games:":
+            print("adding game to game array")
+            
             main.addGame(tables, games, line)
             
             
@@ -109,8 +113,8 @@ with open(args.filename, "r") as inputFile:
             
 
 
-print(games)
-print(practices)
+# print(games)
+# print(practices)
 
 
 
