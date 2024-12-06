@@ -26,6 +26,27 @@ inputParser.add_argument("sectionPenalty", type=int)
 args = inputParser.parse_args()
 
 
+
+
+
+
+# # day: M, T, F | time: ex. 3:00
+# def getSlotIndex(day, time):
+#     hours, halfHours  = time.split(':')
+#     time = int(hours)
+#     if halfHours != "00":
+#         time += 1
+        
+#     if day == "M":     # 0-25
+#         return time - 16
+#     elif day == "T":   # 26-51
+#         return 26+time -16
+#                 # W 52-77 (add 26 to skip Tuesday)
+#                 # T 78-103
+#     else:            # F 104-129
+#         return 84+time -16
+
+
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
     
@@ -66,15 +87,24 @@ with open(args.filename, "r") as inputFile:
         line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
         
         # ####################### Parsing Game Slots: ########################
-        # MO = 0-12, TU = 13-38, WE = 39-51, TH = 52-76, FR = 
         if currentHeader == "Game slots:":
             gameLine = line.split(", ")    # [Day (ie MO), time (ie 8:00), gameMax, gameMin]
             if gameLine[0] == "MO":        # assign to Wednesday and Friday too
                 slotInd = main.get_slot_index('M', gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])    # update the gameMax of specified slot index
-                slots[slotInd][1] = int(gameLine[3]) 
+                slots[slotInd][1] = int(gameLine[3])    # update gameMin
+                slotInd+=27 # move to Wednesday
+                print("Wednesday slot ind= " + str(slotInd))
+                slots[slotInd][0] = int(gameLine[2])    
+                slots[slotInd][1] = int(gameLine[3])  
+                slotInd+=27 # move to Friday
+                slots[slotInd][0] = int(gameLine[2])    
+                slots[slotInd][1] = int(gameLine[3])  
             else:
                 slotInd = main.get_slot_index('T', gameLine[1])
+                slots[slotInd][0] = int(gameLine[2])    
+                slots[slotInd][1] = int(gameLine[3])
+                slotInd+=27 # move to Thurday
                 slots[slotInd][0] = int(gameLine[2])    
                 slots[slotInd][1] = int(gameLine[3])
                 
@@ -82,12 +112,18 @@ with open(args.filename, "r") as inputFile:
         # ####################### Parsing Practice Slots: ########################
         if currentHeader == "Practice slots:":
             pracLine = line.split(", ")
-            if pracLine[0] == "MO":        # assign to Wednesday and Friday too
+            if pracLine[0] == "MO":
                 slotInd = main.get_slot_index('M', pracLine[1])
-                slots[slotInd][2] = int(pracLine[2])    # update the gameMax of specified slot index
+                slots[slotInd][2] = int(pracLine[2])   
+                slots[slotInd][3] = int(pracLine[3]) 
+                slotInd+=27
+                slots[slotInd][2] = int(pracLine[2])   
                 slots[slotInd][3] = int(pracLine[3]) 
             elif pracLine[0] == "TU":
                 slotInd = main.get_slot_index('T', pracLine[1])
+                slots[slotInd][2] = int(pracLine[2])    
+                slots[slotInd][3] = int(pracLine[3])
+                slotInd+=27
                 slots[slotInd][2] = int(pracLine[2])    
                 slots[slotInd][3] = int(pracLine[3])
             else:
@@ -146,9 +182,11 @@ with open(args.filename, "r") as inputFile:
             
             
         elif currentHeader == "Unwanted:":
-            lineSplit = line.split()
-            
-            hardConstraints.set_unwanted()
+            unwantedSplit = line.split(", ")
+            gameStr = unwantedSplit[0]
+            if gameStr in tables["Games:"]:
+                game_index = tables["Games:"][gameStr]
+                hardConstraints.set_unwanted(game_index, )
             
             
             
@@ -169,9 +207,11 @@ with open(args.filename, "r") as inputFile:
                 tables[currentHeader].append(line)
             
 
+print("\n\n\nThese are test prints")
+print(games)
+print(practices)
+print(slots)
 
-# print(games)
-# print(practices)
 
 
 
