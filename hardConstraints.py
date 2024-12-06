@@ -14,8 +14,7 @@ incompatible = {} # dictionary incompatible[event_index] = {event_indices}   <- 
 
 # bandaids for bullet holes, worked in Breaking Bad
 open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices].  append on taking in
-upper_levels = [] # array of different upper level clusters. Different divisions would not collide (I think)
-upper_level = {} # set  upper_level = {slot_index, slot_index, ..., slot_index}  check for membership before assignment
+upper_levels = {} # dictionary of different upper level clusters. Different divisions would not collide (I think)
 
 # --------------------------- assignment ---------------------------
 # - checks all slots_indices can be assigned to (max > 0) 
@@ -380,7 +379,6 @@ def set_zero_game_max(slot_indices, schedule):
     return schedule
 
 
-# open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices].  append on taking in
 # upper_levels = [] # array of different upper level clusters. Different divisions would not collide (I think)
 # upper_level = {} # set  upper_level = {slot_index, slot_index, ..., slot_index}  check for membership before assignment
 
@@ -465,6 +463,22 @@ def set_open_practice(event_index, game_indices, DEBUG=False):
         open_practices[event_index] = open_practices[event_index].union(set(game_indices))
     return True 
     
+def set_upper_level(game_id, game_indices, DEBUG=False):
+    if isinstance(game_indices, int):
+        game_indices = [game_indices]
+    if game_id >= 0:
+        if DEBUG: 
+            print("set_upper_level cannot be called on non-upper level game_id:", game_id)
+        return False
+    
+    if game_id not in upper_levels:
+        upper_levels[game_id] = set(game_indices)
+    else:
+        upper_levels[game_id] = upper_levels[game_id].union(set(game_indices))
+    return True
+
+# set1 = set([1,2])
+# print(set1)
 
 # ########################## Tests ##########################
 
