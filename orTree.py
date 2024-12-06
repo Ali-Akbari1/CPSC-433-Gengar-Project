@@ -35,12 +35,6 @@ def eval(pr, preference_map=None, pair_map=None, weights=None, penalties=None, t
     schedule = [games, practices, slots]
     return eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map)
 
-def assign_helper_partassign(slot_indices, event_index, schedule):
-    if not isinstance(event_index, int):
-        event_index = tuple(event_index)
-    if event_index in partassign and slot_indices != partassign[event_index]:
-        return False
-    return True
 
 
 def is_complete(pr):
@@ -62,7 +56,7 @@ def altern(pr):
     (slots, games, practices) = pr
 
     for gi, g in enumerate(games):
-        if g[1] == ():
+        if g[GAME_TIME] == ():
             # unassigned game found
             return generate_game_alternatives(pr, gi)
 
@@ -107,12 +101,12 @@ def apply_assignment(pr, event_key, slots_indices):
     (slots, games, practices) = pr
     schedule = [games, practices, slots]
     # assumes assign returns True/False
-    success = assign(event_key, slots_indices, schedule)
+    success = assign(event_index, slots_indices, schedule)
     if success:
         # Update pr from schedule after assignment
-        new_slots = schedule[2]
-        new_games = schedule[0]
-        new_practices = schedule[1]
+        new_slots = schedule[SLOT]
+        new_games = schedule[GAME]
+        new_practices = schedule[PRAC]
         return (new_slots, new_games, new_practices)
     else:
         # if not successful, just return original pr (though ideally shouldn't happen if checked))
