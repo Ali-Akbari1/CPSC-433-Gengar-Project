@@ -109,9 +109,9 @@ with open(args.filename, "r") as inputFile:
                 slotInd = main.get_slot_index('T', gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])    
                 slots[slotInd][1] = int(gameLine[3])
-                slotInd+=27 # move to Thurday
-                slots[slotInd][0] = int(gameLine[2])    
-                slots[slotInd][1] = int(gameLine[3])
+                # slotInd+=27 # move to Thurday
+                # slots[slotInd][0] = int(gameLine[2])    
+                # slots[slotInd][1] = int(gameLine[3])
                 
                 
         # ####################### Parsing Practice Slots: ########################
