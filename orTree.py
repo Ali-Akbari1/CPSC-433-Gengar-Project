@@ -11,8 +11,7 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 
 from hardConstraints import assign
 
-# Need way to evaluate
-from softConstraints import evaluate_schedule
+from softConstraints import eval_cost
 
 
 class OrTreeNode:
@@ -31,21 +30,11 @@ class OrTreeNode:
         return OrTreeNode(copy.deepcopy(self.pr), self.sol, copy.deepcopy(self.children))
 
 
-def Constr(pr):
-
-    # Checking for hard constraints
+def eval(pr, preference_map=None, pair_map=None, weights=None, penalties=None, tier_map=None):
     (slots, games, practices) = pr
+    schedule = [games, practices, slots]
+    return eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map)
 
-    # no slot max below 0
-
-    for slot in slots:
-        if slot[0] < 0 or slot[2] < 0:  # GAMX = 0, PRAX = 2 if indxing consistent
-            return False
-    return True
-
-
-def Eval(pr, preference_map=None, pair_map=None):
-    return evaluate_schedule(pr, preference_map, pair_map)
 
 
 def is_complete(pr):
@@ -63,11 +52,11 @@ def is_complete(pr):
     return True
 
 
-def Altern(pr):
+def altern(pr):
     (slots, games, practices) = pr
 
     for gi, g in enumerate(games):
-        if g[1] == ():
+        if g[GAME_TIME] == ():
             # unassigned game found
             return generate_game_alternatives(pr, gi)
 
@@ -112,25 +101,19 @@ def apply_assignment(pr, event_key, slots_indices):
     (slots, games, practices) = pr
     schedule = [games, practices, slots]
     # assumes assign returns True/False
-    success = assign(event_key, slots_indices, schedule)
+    success = assign(event_index, slots_indices, schedule)
     if success:
         # Update pr from schedule after assignment
-        new_slots = schedule[2]
-        new_games = schedule[0]
-        new_practices = schedule[1]
+        new_slots = schedule[SLOT]
+        new_games = schedule[GAME]
+        new_practices = schedule[PRAC]
         return (new_slots, new_games, new_practices)
     else:
         # if not successful, just return original pr (though ideally shouldn't happen if checked))
         return pr
 
 
-def fleaf(nodes, preference_map=None, pair_map=None, r=10):
-    # fleaf;; pick a leaf node to expand based on given criteria
-    # 1) if Constr(pr)=false => cost=0
-    # 2) if no '?' remain => cost=0
-    # 3) if A,B environment vars set and event in {A,B}: cost=1 (not implemented here)
-    # 4) else cost=2+Eval(pr)+Random(0,r)
-
+def fleaf(nodes, preference_map=None, pair_map=None, r=10, weights=None, penalties=None, tier_map=None, A=None, B=None):
     scored = []
     for node in nodes:
         pr = node.pr
@@ -140,10 +123,16 @@ def fleaf(nodes, preference_map=None, pair_map=None, r=10):
             if is_complete(pr):
                 cost = 0
             else:
-                cost = 2 + Eval(pr, preference_map, pair_map) + \
-                    random.randint(0, r)
-        scored.append((cost, node))
+                # If A and B exist and current leaf event is in {A, B}, set cost=1
+                # Otherwise, cost = 2 + Eval(...) + random
+                # For demonstration (assuming we can identify an event in pr to compare to A,B):
+                if A is not None and B is not None and event_in_AB(pr, A, B):
+                    cost = 1
+                else:
+                    cost = 2 + Eval(pr, preference_map, pair_map, weights, penalties, tier_map) + random.randint(0, r)
 
+        scored.append((cost, node))
+    
     scored.sort(key=lambda x: x[0])
     return scored[0][1]
 
@@ -193,13 +182,11 @@ def or_tree_search(pr, preference_map=None, pair_map=None, max_iter=1000):
         leaves = get_leaves(frontier)
         if not leaves:
             break
-        leaf = fleaf(leaves, preference_map, pair_map)
+        leaf = fleaf(leaves, preference_map, pair_map, r=10, weights=weights, penalties=penalties, tier_map=tier_map)
         new_leaf = ftrans(leaf)
         if new_leaf.sol in ('yes', 'no'):
-            # ff yes or no, solution or dead end:
             if new_leaf.sol == 'yes':
                 return new_leaf.pr
-            # else just continue
         else:
             frontier.extend(new_leaf.children)
 
@@ -207,6 +194,7 @@ def or_tree_search(pr, preference_map=None, pair_map=None, max_iter=1000):
 
 
 ################# STUB FUNCTIONS #################
+
 def find_valid_game_assignments(pr, game_index):
     slots, games, practices = pr
     schedule = [games, practices, slots]
@@ -224,3 +212,7 @@ def find_valid_practice_assignments(pr, game_index, practice_index):
     valid_slots = find_possible_slots(practice_event, schedule)
 
     return valid_slots
+
+def event_in_AB(pr, A, B):
+    # Implement logic to determine if current pr involves events from A or B
+    return False  # placeholder, implement your check here
