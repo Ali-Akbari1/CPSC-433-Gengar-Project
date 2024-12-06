@@ -1,0 +1,28 @@
+Name:
+Pair, the 2 games should be together. 
+
+Game slots:
+MO, 8:00, 2, 0
+MO, 9:00, 2, 0
+MO, 10:00, 2, 0
+MO, 11:00, 2, 0
+MO, 12:00, 2, 0
+
+Practice slots:
+
+Games:
+CMSA U13T3 DIV 01
+CMSA U13T3 DIV 02
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+CMSA U13T3 DIV 02, CMSA U13T3 DIV 01
+
+Partial assignments:
