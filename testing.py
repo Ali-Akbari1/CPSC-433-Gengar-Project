@@ -26,8 +26,8 @@ inputParser.add_argument("sectionPenalty", type=int)
 args = inputParser.parse_args()
 
 
-
-
+def get_associated_game(prac):
+    return prac.subStr[0:-7]
 
 
 # # day: M, T, F | time: ex. 3:00
@@ -209,30 +209,30 @@ with open(args.filename, "r") as inputFile:
                 hardConstraints.set_unwanted(tables["Practices:"][eventStr], [main.get_slot_index(unwantedSplit[1], unwantedSplit[2])])
             
             
-        # # Nathan
-        # elif currentHeader == "Partial assignments:":
-        #     # CUSA O18 DIV 01, MO, 8:00
-        #     # CUSA O18 DIV 01, TU, 8:00
-        #     # CUSA O18 DIV 01 PRC 01, FR, 8:00
-        #     lineSplit = line.split(",")
-        #     lineStrip = [x.strip() for x in lineSplit]
-        #     event = lineStrip[0]
+        # Nathan
+        elif currentHeader == "Partial assignments:":
+            # CUSA O18 DIV 01, MO, 8:00
+            # CUSA O18 DIV 01, TU, 8:00
+            # CUSA O18 DIV 01 PRC 01, FR, 8:00
+            lineSplit = line.split(",")
+            lineStrip = [x.strip() for x in lineSplit]
+            event = lineStrip[0]
 
-        #     if event in tables["Games:"]:
-        #         event_index = tables["Games:"][event]
-        #     elif event in tables["Practices:"]:
-        #         associated_game = get_associated_game(event)
-        #         game_index = tables["Games:"][associated_game]
-        #         event_index = (game_index, practice_index)# HELP: not sure what to put for the practice indices still
-        #         # TODO how are you gettting the practice index?
+            if event in tables["Games:"]:
+                event_index = tables["Games:"][event]
+            elif event in tables["Practices:"]:
+                associated_game = get_associated_game(event)
+                game_index = tables["Games:"][associated_game]
+                event_index = (game_index, practice_index)# HELP: not sure what to put for the practice indices still
+                # TODO how are you gettting the practice index?
 
-            # # CUSA O18 DIV 01, TU, 8:00
-            # # ["CUSA O18 DIV 01", "TU", "8:00"]
-            # slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
+            # CUSA O18 DIV 01, TU, 8:00
+            # ["CUSA O18 DIV 01", "TU", "8:00"]
+            slots_indices = main.get_slot_index(lineStrip[1], lineStrip[1])
 
-            # # TODO there should also be a template game/ practice that can take assignments. 
-            # #   the model init takes a game and schedule, so whereever we call that
-            # hardConstraints.set_partassign(event_index, slots_indices)
+            # TODO there should also be a template game/ practice that can take assignments. 
+            #   the model init takes a game and schedule, so whereever we call that
+            hardConstraints.set_partassign(event_index, slots_indices)
             
             
         # create paralelles
