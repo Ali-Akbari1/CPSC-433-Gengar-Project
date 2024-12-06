@@ -70,19 +70,20 @@ with open(args.filename, "r") as inputFile:
                 
             elif (age >= 16) and (division < 9):
                 games.append([-1, ()])
-                
+
             elif (age >= 16) and (division >= 9):
                 games.append([-1-main.EVENING_CONST, ()])
                   
+        elif currentHeader == "Not compatible:":
+            hardConstraints.set_incompatible()
             
+        # elif line:
+        #     line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
             
-        elif line:
-            line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
+        #     # line = re.sub(r"\s+", " ", line) # cleanup possible excess spaces between words
+        #     # ^ maybe unneccesary
             
-            # line = re.sub(r"\s+", " ", line) # cleanup possible excess spaces between words
-            # ^ maybe unneccesary
-            
-            tables[currentHeader].append(line)
+        #     tables[currentHeader].append(line)
             
 
 
