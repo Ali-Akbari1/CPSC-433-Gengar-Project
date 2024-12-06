@@ -272,7 +272,7 @@ def assign_helper_upper_level(slot_indices, event_index, schedule, DEBUG=False):
     if not isinstance(event_index, int):
         return True
     # no potential problem unless event is in upper_level
-    if not event_index in upper_level:
+    if not event_index in upper_levels:
         return True
     
     # games are aligned, check first only. Bit of a shortcut but I think it should hold
