@@ -6,8 +6,7 @@ from hardConstraints import assign, unassign
 from softConstraints import eval_cost
 from geneticAlgorithm import mutate, find_possible_slots
 from main import print_schedule
-# Replace 'yourOrTreeFile' with the actual file name where OrTreeNode is defined
-from yourOrTreeFile import OrTreeNode
+from alternateOrTree import OrTreeNode
 
 
 class Model:
