@@ -9,6 +9,7 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 def eval_min(schedule, pen_gamemin, pen_practicemin):
     penalty = 0
     for slot in schedule[SLOT]:
+        print(slot)
         if slot[GAMN] > 0 and slot[GAMX] > slot[GAMN]:
             penalty += (slot[GAMN] - slot[GAMX]) * pen_gamemin
         if slot[PRAN] > 0 and slot[PRAX] > slot[PRAN]:
@@ -51,13 +52,13 @@ def eval_secdiff(schedule, tier_map, pen_section):
 
 def eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map):
     return (
-        eval_min(schedule, penalties['pen_gamemin'],
-                 penalties['pen_practicemin']) * weights['w_minfilled']
-        + eval_pref(schedule, preference_map) * weights['w_pref']
+        eval_min(schedule, penalties[0],
+                 penalties[1]) * weights[0]
+        + eval_pref(schedule, preference_map) * weights[1]
         + eval_pair(schedule, pair_map,
-                    penalties['pen_notpaired']) * weights['w_pair']
+                    penalties[2]) * weights[2]
         + eval_secdiff(schedule, tier_map,
-                       penalties['pen_section']) * weights['w_secdiff']
+                       penalties[3]) * weights[3]
     )
 
 
@@ -71,14 +72,14 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
         if game[GAME_TIME]:
             for slot in game[GAME_TIME]:
                 penalty += preference_map.get((game_id, slot), 0)
-        contributions[('game', game_id)] = penalty * weights['w_pref']
+        contributions[('game', game_id)] = penalty * weights[1]
 
     # Evaluate pairing penalties
     for game_id, paired_game in pair_map.items():
         game_slot = schedule[GAME][game_id][GAME_TIME]
         paired_slot = schedule[GAME][paired_game][GAME_TIME]
         if game_slot != paired_slot:
-            penalty = penalties['pen_notpaired'] * weights['w_pair']
+            penalty = penalties[2] * weights[2]
             contributions[('game', game_id)] = contributions.get(
                 ('game', game_id), 0) + penalty / 2
             contributions[('game', paired_game)] = contributions.get(
@@ -106,7 +107,7 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
         # Games
         if slot[GAMN] > 0 and slot[GAMX] < slot[GAMN]:
             penalty = (slot[GAMN] - slot[GAMX]) * \
-                penalties['pen_gamemin'] * weights['w_minfilled']
+                penalties[0] * weights[0]
             assigned_games = [game_id for game_id, game in enumerate(
                 schedule[GAME]) if slot_index in game[GAME_TIME]]
             for game_id in assigned_games:
@@ -115,7 +116,7 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
         # Practices
         if slot[PRAN] > 0 and slot[PRAX] < slot[PRAN]:
             penalty = (slot[PRAN] - slot[PRAX]) * \
-                penalties['pen_practicemin'] * weights['w_minfilled']
+                penalties[1] * weights[0]
             for game_id, practices in enumerate(schedule[PRAC]):
                 for prac_id, practice in enumerate(practices):
                     if slot_index in practice:

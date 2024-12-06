@@ -290,17 +290,20 @@ with open(args.filename, "r") as inputFile:
             else:
                 tables[currentHeader].append(line)
 
-weights = [args.minfilledWeight, args.prefWeight, args.pairWeight, args.secdiffWeight, args.secdiffWeight]
+weights = [args.minfilledWeight, args.prefWeight, args.pairWeight, args.secdiffWeight]
+
+
 penalties = [args.gameminPenalty, args.practiceminPenalty, args.notpairedPenalty, args.sectionPenalty]
 
 
 myModel = model.Model(slots, games, practices, preference_map, pair_map, tier_map, weights, penalties)
 
+# print(args.gameminPenalty)
 
-inputParser.add_argument("gameminPenalty", type=int)
-inputParser.add_argument("practiceminPenalty", type=int)
-inputParser.add_argument("notpairedPenalty", type=int)
-inputParser.add_argument("sectionPenalty", type=int)
+# inputParser.add_argument("gameminPenalty", type=int)
+# inputParser.add_argument("practiceminPenalty", type=int)
+# inputParser.add_argument("notpairedPenalty", type=int)
+# inputParser.add_argument("sectionPenalty", type=int)
 
 # print("\nThese are test prints")
 # print(games)
