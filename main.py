@@ -26,7 +26,7 @@ EVENING_BOUND = 20   # 8am start, this should be 6pm
 # placeholder, parser can assign as needed
 def init_slots(game_max, game_min, practice_max, practice_min, DEBUG=False):
     slots = []
-    for i in range((SLOTS_PER_DAY*3)): # mul by 3 MTF
+    for i in range((SLOTS_PER_DAY*3)): # mul by 3 for MTF
         slots.append([game_max, game_min, practice_max, practice_min])
         if(DEBUG and i<HOURS_PER_DAY*2):
             if(i%2 == 0):
@@ -57,9 +57,9 @@ def get_slot_index(day, time):
         res += 1
 
     # monday is default, nothing needs to be done
-    if day == "t" or day == "T":
+    if day == "t" or day == "T" or day=="TU":
         res += SLOTS_PER_DAY
-    elif day == "f" or day == "F":
+    elif day == "f" or day == "F" or day=="FR":
         res += SLOTS_PER_DAY * 2
     return res
 
@@ -94,3 +94,29 @@ def print_schedule(schedule, events=True, slots=False):
             print(s, slot)
 
 
+    
+
+# Game number key
+# - positive number league/age, young divisions
+# - positive number plus constant, = evening, young divisions
+# - negative number for league/ age group 16 and above
+# - negative number minus constant = evening, old divisions
+gameCounter = 0
+def addGame(tables, games, line):
+    lineCopy = line.split()
+    age = lineCopy[1][1:2]
+    division = lineCopy[3][1:]
+    
+    if (age < 16) and (division < 9):
+        games.append([1, ()])
+    elif (age < 16) and (division >= 9):
+        games.append([1+EVENING_CONST, ()]) 
+    elif (age >= 16) and (division < 9):
+        games.append([-1, ()])
+    elif (age >= 16) and (division >= 9):
+        games.append([-1-EVENING_CONST, ()])
+        
+    tables["Games:"][line] = gameCounter # for quick referencing the index of game strings, used in practices
+    _ = None
+    gameCounter += 1
+    
