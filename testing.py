@@ -286,13 +286,11 @@ with open(args.filename, "r") as inputFile:
         elif currentHeader == "Pair:":
             # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
             game1, game2 = line.split(", ")
-            print(games)
-            print(tables["Games:"])
-            print(game1)
-            game1_index = tables["Games:"][game1]
-            game2_index = tables["Games:"][game2]
-            pair_map[game1] = game2
-            print(pair_map)
+            if game1 in tables["Games:"]:
+                game1_index = tables["Games:"][game1]
+            if game2 in tables["Games:"]:
+                game2_index = tables["Games:"][game2]
+            pair_map[game1_index] = game2_index
 
         # # ------------------- Parsing Games (for Tier Map) -------------------
         # elif currentHeader == "Games:":
