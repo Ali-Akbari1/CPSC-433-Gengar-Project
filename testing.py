@@ -44,6 +44,10 @@ with open(args.filename, "r") as inputFile:
             currentHeader = line
             tables[currentHeader] = [] # empty list with key header, list will hold rows
             continue
+
+        # empty line
+        if not line:
+            continue
         
         line = re.sub(r",\s*", ", ", line) # clean up the excess or none spacing after commas
         
@@ -69,7 +73,7 @@ with open(args.filename, "r") as inputFile:
                 
             elif (age >= 16) and (division >= 9):
                 games.append([-1-main.EVENING_CONST, ()])
-                
+                  
             
             
         elif line:
