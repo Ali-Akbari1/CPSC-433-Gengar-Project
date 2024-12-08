@@ -36,7 +36,7 @@ class Model:
             init_slots = copy.deepcopy(self.slots)
             init_games = copy.deepcopy(self.games)
             init_practices = copy.deepcopy(self.practices)
-            pr = (init_slots, init_games, init_practices)
+            pr = (init_games, init_practices, init_slots)
 
             # Use OrTreeNode search to fill all '?' events
             root = OrTreeNode(pr,

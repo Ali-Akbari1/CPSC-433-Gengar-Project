@@ -361,8 +361,12 @@ weights = [args.minfilledWeight, args.prefWeight,
 penalties = [args.gameminPenalty, args.practiceminPenalty,
              args.notpairedPenalty, args.sectionPenalty]
 
+#print(slots)
+main.set_slots(slots)
+main.set_pref_map(preference_map)
+main.set_pair_map(pair_map)
 myModel = model.Model(slots, games, practices, preference_map,
-                      pair_map, tier_map, weights, penalties)
+                       pair_map, tier_map, weights, penalties)
 
 
 

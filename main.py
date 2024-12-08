@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 HOURS_PER_DAY = 13                    # 8am-start to 9pm-end would be 13
 SLOTS_PER_DAY = HOURS_PER_DAY * 2
 
@@ -185,6 +188,24 @@ def test_get_slot_with_get_slot_index():
     print(get_slot_string(get_slot_index_from_string(string)) == string)
     string = "FR, 20:30"
     print(get_slot_string(get_slot_index_from_string(string)) == string)
+
+
+slots_from_testing = []
+def set_slots(slots_in):
+    for i in slots_in:
+        slots_from_testing.append(i)
+
+pref_map_from_testing = {}
+def set_pref_map(map_in):
+    pref_map_from_testing = deepcopy(map_in)
+
+tier_map_from_testing = {}
+def set_tier_map(map_in):
+    tier_map_from_testing = deepcopy(map_in)
+
+pair_map_from_testing = {}
+def set_pair_map(map_in):
+    pair_map_from_testing = deepcopy(map_in)
 
 # test_get_slot_with_get_slot_index()
 
