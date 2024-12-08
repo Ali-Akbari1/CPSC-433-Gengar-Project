@@ -28,10 +28,7 @@ partassign = {} # dictionary of partial assignments partassign[event_index] = (r
 # - decrements gamemax or practicemax for all slot indices
 # - sets the event time tuple to slots_indices
 
-# NOTE Assign/ partassign. partassign will not be placed in update list
-# partassigns must be tracked for collisions, each event should be represented in games 
-# and practices, but we can keep the update list optimization for actual search. 
-# ### Update list is a requirement, not an optimization ###
+# TODO update docs 
 
 # event_index    - one number for games, two for practices. This is where to assign the slots to. 
 # slots_indices  - a list of slots to assign the game/ practice

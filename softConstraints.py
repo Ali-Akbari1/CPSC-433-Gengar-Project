@@ -85,7 +85,6 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
 
     # Evaluate preferences per event
     for game_id, game in enumerate(schedule[1]):
-        # TODO each game in schedule is (n, ()) where () is the time slot, ^^ here game should already be the game slot
         penalty = 0
         if game[GAME_TIME]:
             for slot in game[GAME_TIME]:

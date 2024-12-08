@@ -125,3 +125,16 @@ class StringToUniqueNumber:
 # beef = strs.get_string(beef)
 # duck = strs.get_string(duck)
 # print(lamb, beef, duck)
+
+
+
+
+# games_names = ["are", "cool", "alphabets"]
+# games = [":are", ":cool", ":alphabets"]
+
+# zipped_gam = list(zip(games_names, games))
+# sorted_gam = sorted(zipped_gam, key=lambda x:x[0])
+
+# sorted_names, sorted_games = zip(*sorted_gam)
+# print(sorted_names)
+# print(sorted_games)

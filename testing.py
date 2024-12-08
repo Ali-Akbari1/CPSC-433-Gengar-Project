@@ -358,7 +358,10 @@ weights = [args.minfilledWeight, args.prefWeight,
 penalties = [args.gameminPenalty, args.practiceminPenalty,
              args.notpairedPenalty, args.sectionPenalty]
 
-
+# TODO what needs to be done to get soemthing running?
+# TODO Genetic algorithm will run forever, there should be some way to get best answer after
+# some number of iterations or time. 
+# TODO we need output
 myModel = model.Model(slots, games, practices, preference_map,
                       pair_map, tier_map, weights, penalties)
 
