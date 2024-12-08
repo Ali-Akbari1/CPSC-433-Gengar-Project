@@ -106,25 +106,21 @@ with open(args.filename, "r") as inputFile:
 
         # ####################### Parsing Game Slots: ########################
         if currentHeader == "Game slots:":
-            # [Day (ie MO), time (ie 8:00), gameMax, gameMin]
+            # [Day,  time,   gameMax, gameMin] for example:
+            # ["MO", "8:00", 2,       1      ]
             gameLine = line.split(", ")
-            if gameLine[0] == "MO":        # assign to Wednesday and Friday too
-                slotInd = main.get_slot_index('M', gameLine[1])
+            if gameLine[0] == "MO":
+                # 2 slots for Monday games 
                 # update the gameMax of specified slot index
+                slotInd = main.get_slot_index(gameLine[0], gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])
-                slots[slotInd][1] = int(gameLine[3])    # update gameMin
+                slots[slotInd][1] = int(gameLine[3])
                 slotInd+=1
                 slots[slotInd][0] = int(gameLine[2])
                 slots[slotInd][1] = int(gameLine[3]) 
-                # slotInd+=27 # move to Wednesday
-
-                # slots[slotInd][0] = int(gameLine[2])
-                # slots[slotInd][1] = int(gameLine[3])
-                # slotInd+=27 # move to Friday
-                # slots[slotInd][0] = int(gameLine[2])
-                # slots[slotInd][1] = int(gameLine[3])
             else:
-                slotInd = main.get_slot_index('T', gameLine[1])
+                # 3 slots for Tuesday games 
+                slotInd = main.get_slot_index(gameLine[0], gameLine[1])
                 slots[slotInd][0] = int(gameLine[2])
                 slots[slotInd][1] = int(gameLine[3])
                 slotInd+=1
@@ -133,42 +129,37 @@ with open(args.filename, "r") as inputFile:
                 slotInd+=1
                 slots[slotInd][0] = int(gameLine[2])
                 slots[slotInd][1] = int(gameLine[3])
-                # slotInd+=27 # move to Thurday
-                # slots[slotInd][0] = int(gameLine[2])
-                # slots[slotInd][1] = int(gameLine[3])
 
         # ####################### Parsing Practice Slots: ########################
-
-        # TODO: the case where there is not PRC, so all divisions have it?
 
         if currentHeader == "Practice slots:":
             pracLine = line.split(", ")
             if pracLine[0] == "MO":
-                slotInd = main.get_slot_index('M', pracLine[1])
+                # 2 slots for Monday Practices
+                slotInd = main.get_slot_index(pracLine[0], pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
                 slotInd+=1
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
-                # slotInd+=27
-                # slots[slotInd][2] = int(pracLine[2])
-                # slots[slotInd][3] = int(pracLine[3])
             elif pracLine[0] == "TU":
-                slotInd = main.get_slot_index('T', pracLine[1])
+                # 2 slots for Tuesday Practices
+                slotInd = main.get_slot_index(pracLine[0], pracLine[1])
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
                 slotInd+=1
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
                 slotInd+=1
-                slots[slotInd][2] = int(pracLine[2])
-                slots[slotInd][3] = int(pracLine[3])
-                slotInd+=1
-                # slotInd+=27
-                # slots[slotInd][2] = int(pracLine[2])
-                # slots[slotInd][3] = int(pracLine[3])
             else:
-                slotInd = main.get_slot_index('F', pracLine[1])
+                # 4 slots for Friday practices
+                slotInd = main.get_slot_index(pracLine[0], pracLine[1])
+                slots[slotInd][2] = int(pracLine[2])
+                slots[slotInd][3] = int(pracLine[3])
+                slotInd+=1
+                slots[slotInd][2] = int(pracLine[2])
+                slots[slotInd][3] = int(pracLine[3])
+                slotInd+=1
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
                 slotInd+=1
@@ -178,9 +169,8 @@ with open(args.filename, "r") as inputFile:
         # ####################### Parsing Games: ########################
         if currentHeader == "Games:":
 
-            #
             lineCopy = line.split()
-            age = int(lineCopy[1][1:3])     # age/tier
+            age = int(lineCopy[1][1:3])     # get age from age/tier, for example: U18T3 should be 18
             division = int(lineCopy[3][1:])
 
             # store the name
