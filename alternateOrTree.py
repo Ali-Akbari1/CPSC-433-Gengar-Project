@@ -48,13 +48,6 @@ class OrTreeNode:
                     return False
         return True
 
-    # def constr(self):
-        # If all assignments were made using 'assign', hard constraints should hold.
-        # For now, we trust that invalid assignments are never made.
-        # If a re-check is needed, we could implement a full constraint check here.
-        # Return True if no known violation.
-        # return True
-
     # might make the model more constrained towards one solution but we need something that works
     def next_unassigned_event(self):
         # Find the first event that is still '?'
@@ -93,8 +86,8 @@ class OrTreeNode:
         # 1. 0 if constr(pr) = false
         # if not self.constr():
         #     return 0
-
         # 2. 0 if no '?' remain (complete solution)
+
         if self.isComplete():
             return 0
 
@@ -166,7 +159,7 @@ class OrTreeNode:
     def orTreeCrossover(self, A, B, pr):
         games, practices, slots = pr
         
-        # Unpack parent schedules
+        # unpack the parent schedules
         A_games, A_practices, A_slots = A
         B_games, B_practices, B_slots = B
 
@@ -299,57 +292,57 @@ class OrTreeNode:
 
 
 # # ------------------------------------
-# # TEST CODE SECTION
+# #         TEST CODE SECTION
 # # ------------------------------------
-# # Below is an example test setup. Adjust as needed depending on your environment.
+# #  Below is an example test setup. 
 
 # if __name__ == "__main__":
-#     # Create a small test scenario for demonstration:
-#     # Remember our pr = (games, practices, slots)
-#     # Let's define minimal mock data:
-#     # Each game or practice time is initially set to (), indicating unassigned.
-#     # GAME_TIME is an index used by the schedule structure (from main import GAME_TIME).
+#     # small test scenario for demonstration:
+#     # Remember our pr is now changed to = (games, practices, slots)
+#     # Each game or practice time is first set to (), indicating unassigned
+#     # GAME_TIME is an index used by the schedule structure (from main import GAME_TIME)
 
-#     # Mock data (these are just example formats, adapt as per your actual usage):
+#     # Herew we have some mock data (these are just example formats, adapt as per your actual usage):
+#     
+# 
 #     # Suppose a game is structured like: [GAME_ID, GAME_TIME]
 #     # and a practice is structured like: [PRACTICE_TIME], etc.
-#     test_games = [[0, ()], [1, ()]]  # Two games, times unassigned
+#     test_games = [[ 0, ()], [ 1, ()]]  # Two games, times unassigned
 #     test_practices = [
-#         [(), ()],  # First team's two practices unassigned
+#         [(), ()],  # first team's two practices unassigned,
 #         [()]        # Second team, one practice unassigned
 #     ]
 #     test_slots = [
 #         [1, 1, 1, 1],  # slot index 0
-#         [1, 1, 1, 1],  # slot index 1   # slot index 3
+#         [1, 1, 1, 1],  # slot index 1  (using short examples)
 #     ]
-#   # A simple slot structure (one day, three possible slot indices)
+#   # simple slot structure (one day, three possible slot indices)
 
-#     pr = (test_games, test_practices, test_slots)
+#     pr = (test_games, test_practices, test_slots) new structuce of pr
 #     node = OrTreeNode(
 #         pr, 
 #         weights=[1, 1, 1, 1], 
 #         penalties=[1, 1, 1, 1],
 #         preference_map={},  # empty dict if you have no preferences
+#         
 #         pair_map={},        # empty dict to avoid NoneType errors
 #         tier_map={}
 #     )
 
 
-#     # --- Testing each method ---
+#     # --- Testing each method invdividually ---
 #     # 1. Test is_leaf()
-#     # Just run:
-#     # python your_file.py
-#     # You should see "True" since no children initially.
+#     # should see "True" since no children initially.
 #     print("Testing is_leaf:")
 #     print(node.is_leaf())  # Expect True
 
 #     # 2. Test haveParents()
-#     # Expect False, since A and B not set
+#     # should Expect False, since A and B not set
 #     print("Testing haveParents:")
 #     print(node.haveParents())  # Expect False
 
 #     # 3. Test isComplete()
-#     # All events are unassigned, so expect False
+#     # All the events are unassigned, so expect False
 #     print("Testing isComplete:")
 #     print(node.isComplete())  # Expect False
 
@@ -359,65 +352,68 @@ class OrTreeNode:
 #     print(node.next_unassigned_event())  # Expect 0 (the first game is unassigned)
 
 #     # 5. Test event_in_parents()
-#     # No parents set, so should return False
+#     # No parents in a set, so should return False
 #     print("Testing event_in_parents with event=0:")
 #     print(node.event_in_parents(0))  # Expect False
 
 #     # 6. Test fleaf()
-#     # Not complete, no parents, so fleaf = 2 + cost + random(0, r)
+#     # not fully complete, no parents, so fleaf = 2 + cost + random(0, r)
 #     # cost likely 0 if no constraints. Expect something >= 2.
 #     print("Testing fleaf:")
 #     print(node.fleaf())  # Expect an integer >= 2
 
 #     # 7. Test ftrans() 
-#     # Without actual constraints and slot assignment logic from other modules,
-#     # we may not get meaningful children. If find_possible_slots returns no possibilities,
+#     # here we arent using actual constraints and slot assignment logic from other modules,
+#     # we may not get meaningful children, If find_possible_slots returns no possibilities,
 #     # we get "no" solution. For a real test, find_possible_slots would need proper mock data.
 #     # For now, just run it to see it doesn't crash:
 #     print("Testing ftrans:")
 #     children = node.ftrans()
 #     print("Number of children:", len(children))
-#     # Expect either 0 (if no slot assignments possible) or more.
+#     # we're expecting either 0 (if no slot assignments possible) or more.
 
 #     # 8. Test orTreeCrossover()
 #     # We need two parent schedules A and B. We'll just mock them as well:
 #     A = (
 #         [[0, (0,1)], [1, ()]],  # Two games: Game 0 assigned to slots 0,1; Game 1 unassigned
-#         [[(1,), ()], [()]],      # Two practices: Team 0 has 2 practices, Team 1 has 1 practice
-#         [
+#         [[ (1,), ()], [()]],      # Two practices: Team 0 has 2 practices, Team 1 has 1 practice
+#         
+#           [
 #             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1],
+#             
 #             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1]
-#         ]  # 8 slot lists matching pr's slots
+#         ]  # 8 slot lists matching pr's new slots
 #     )
 
 #     B = (
-#         [[0, (0,1)], [1, ()]],  # Two games: Game 0 assigned to slots 0,1; Game 1 unassigned
+#         [[0, (0,1)], [1, ()]],  # Two games: Game 0 assigned to slots 0,1 : Game 1 unassigned
 #         [[(1,), ()], [()]],      # Two practices: Team 0 has 2 practices, Team 1 has 1 practice
 #         [
 #             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1],
+#             
 #             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1]
 #         ]  # 8 slot lists matching pr's slots
-#     )  # Identical to A for simplicity
+#     )  # Identical to A for ease of test
  
 #     node.A = A
 #     node.B = B
 #     node.orTreeCrossover(A, B, pr)
-#     # If A and B agree on assignments, pr might now be partially assigned.
+#     # If A and B agree on assignment/task, pr might now be partially assigned.
 #     print("Testing orTreeCrossover - pr after crossover:")
-#     print(node.pr)  # Expect some assignments now set.
+#     print(node.pr)  # Expect some assignments now set
 
 #     # 9. Test runCrossoverSearch()
-#     # With mock data not fully set up, this may not produce a complete schedule,
-#     # but we can still run it to verify no errors:
+#     # With mock data not set up completley, this may not produce a complete schedule,
+#     # we can still run it to verify no errors:
 #     print("Testing runCrossoverSearch:")
 #     result = node.runCrossoverSearch(A, B)
 #     print("Crossover search result:", result)
 #     # Expect either a completed schedule or None, depending on data.
 
 #     # 10. Test search()
-#     # Similar note as above. If data or constraints are not set for a solvable scenario,
-#     # may return None.
+#     # similarly note as above, If data or constraints are not set for a solvable scenario,
 #     print("Testing search:")
 #     search_result = node.search()
 #     print("Search result:", search_result)
-#     # Expect None or a schedule if possible.
+#     # Expect None or a schedule if possible
+

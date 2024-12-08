@@ -360,11 +360,23 @@ weights = [args.minfilledWeight, args.prefWeight,
 
 penalties = [args.gameminPenalty, args.practiceminPenalty,
              args.notpairedPenalty, args.sectionPenalty]
-
+#initialize it
 myModel = model.Model(slots, games, practices, preference_map,
                       pair_map, tier_map, weights, penalties)
 
+# run it #mymodel
 
+GENERATIONS = 100  #adjust this as needed
+
+print("Running the model search...")
+best_schedule = myModel.run_search(generations=GENERATIONS)
+
+# Retrieve and evaluate the best schedule
+if best_schedule is not None:
+    final_score = myModel.evaluate_solution(best_schedule)
+    print_output(final_score, best_schedule)
+else:
+    print("No valid schedule found.")
 
 # print(args.gameminPenalty)
 
@@ -377,6 +389,9 @@ myModel = model.Model(slots, games, practices, preference_map,
 # print(games)
 # print(practices)
 # print(slots)
+
+
+
 
 # Print the maps for debugging
 # print("Preference Map:", preference_map)
