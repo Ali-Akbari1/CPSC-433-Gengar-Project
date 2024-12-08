@@ -209,8 +209,6 @@ with open(args.filename, "r") as inputFile:
                 # tier map
                 for name_ in games_names:
                     tables["Games:"][name_] = gameCounter
-                    gameCounter +=1
-
                     # decode the gamecode to enter into tier map
                     game_code = abs(games[gameCounter][GAME_CODE])
                     if game_code > EVENING_CONST:
@@ -218,6 +216,7 @@ with open(args.filename, "r") as inputFile:
                     tier_map[gameCounter] = game_code
                     # gameCounter is the INDEX of the game in the games array,
                     # game_code is the tier and league information. 
+                    gameCounter +=1
 
             # TODO open practices
             for i in range(len(line)):
