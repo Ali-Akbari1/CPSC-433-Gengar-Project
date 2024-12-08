@@ -32,25 +32,8 @@ inputParser.add_argument("sectionPenalty", type=int)
 args = inputParser.parse_args()
 
 
-def get_associated_game(prac):
+def get_associated_game(prac): # TODO not working for no DIV practices
     return prac.subStr[0:-7]
-
-
-# # day: M, T, F | time: ex. 3:00
-# def getSlotIndex(day, time):
-#     hours, halfHours  = time.split(':')
-#     time = int(hours)
-#     if halfHours != "00":
-#         time += 1
-
-#     if day == "M":     # 0-25
-#         return time - 16
-#     elif day == "T":   # 26-51
-#         return 26+time -16
-#                 # W 52-77 (add 26 to skip Tuesday)
-#                 # T 78-103
-#     else:            # F 104-129
-#         return 84+time -16
 
 games_names = []  # games array ["CSMA U16...", "CUSA U12...", ...]
 prac_names = []  # practice array [["s", "s", "s"], ["s", "s", "s"], ...]
@@ -62,6 +45,8 @@ with open(args.filename, "r") as inputFile:
     pair_map = {}
     tier_map = {}
     tables = {}  # Using a dictionary, key: headers, values: rows
+    
+    sorted_ = None
 
     league_and_tiers = main.StringToUniqueNumber()
 
@@ -77,7 +62,6 @@ with open(args.filename, "r") as inputFile:
     gameCounter = 0
     practiceCounter = 0
     validHeader = ("Name:", "Game slots:", "Practice slots:", "Games:", "Practices:", "Not compatible:",
-                   # a set of strings containing headers
                    "Unwanted:", "Preferences:", "Pair:", "Partial assignments:")
     currentHeader = None
 
@@ -179,7 +163,7 @@ with open(args.filename, "r") as inputFile:
             # store the encoded game
             # get a unique number for the league and tier, this is used for open practices
             league_and_tier = lineCopy[0] + " " + lineCopy[1]
-            game_id = league_and_tiers(league_and_tier)
+            game_id = league_and_tiers.get_number(league_and_tier)
             # Day games for under 16 have identifier: 0 < game_id < EVENING_CONST
             if (age < 16) and (division < 9):
                 games.append([game_id, ()])
@@ -196,6 +180,7 @@ with open(args.filename, "r") as inputFile:
             # make a practice row for game, these are unnamed until pratices are read in. 
             # (so the order of games can switch)
             practices.append([])
+            prac_names.append([])
 
             # game counter will be incorrect after alphabetizing. Game counter moved to out of loop. 
             # this needs to preserve order so that we can alphabetize it. Using an array for
@@ -209,21 +194,23 @@ with open(args.filename, "r") as inputFile:
             # output anyways, we can just use the string itself and adjacent encodings
             tier_map[line] = tier_key
 
-        
-        # alphabetize the games, keeping relative order to the abstracted games
-        zipped_ = list(zip(games_names, games))
-        sorted_ = sorted(zipped_, key=lambda x:x[0])
-        games_names, games = zip(*sorted_)
-        # TODO output uses games_names
-
-        # now the indices will be correct so we can populate the dictionary entries
-        for name_ in games_names:
-            tables["Games:"][name_] = gameCounter
-            gameCounter +=1
-
 
         # ####################### Parsing Practices: ########################
         if currentHeader == "Practices:":
+            # games are done, sort them 
+            if not sorted_:
+                # alphabetize the games, keeping relative order to the abstracted games
+                zipped_ = list(zip(games_names, games))
+                sorted_ = sorted(zipped_, key=lambda x:x[0])
+
+                games_names, games = zip(*sorted_)
+                # TODO output uses games_names
+
+                # now the indices will be correct so we can populate the dictionary entries
+                for name_ in games_names:
+                    tables["Games:"][name_] = gameCounter
+                    gameCounter +=1
+
             # TODO open practices
             for i in range(len(line)):
                 # TODO yikes, we do not need to do that much work
@@ -235,7 +222,11 @@ with open(args.filename, "r") as inputFile:
                     associated_game_index = tables["Games:"][subString]
                     practices[associated_game_index].append(())
                     prac_names[associated_game_index].append(line)
+                    print("DEBUG: ",line, len(prac_names[associated_game_index]))
                     # add the index of the corresponding game, append an empty tuple
+                    
+                    # add to tables for easy access later
+                    tables["Practices:"][line] = [associated_game_index, len(practices[associated_game_index])-1]
                     break
             pracArr = line.split()
 
@@ -249,29 +240,36 @@ with open(args.filename, "r") as inputFile:
                         tables["Practices:"][line] = [
                             tables["Games:"][key], int(pracArr[-1])]
 
-            elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
-                # print(pracArr)
-                tables["Practices:"][line] = [
-                    tables["Games:"][subString], int(pracArr[-1])]
+            # elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
+            #     # print(pracArr)
+            #     tables["Practices:"][line] = [
+            #         tables["Games:"][subString], int(pracArr[-1])]
 
         # ####################### Parsing Not Compatible: ########################
         elif currentHeader == "Not compatible:":
             event1, event2 = line.split(", ")
+            valid_flag = True
 
             # TODO: failed ali_tests\SmallerInput1
             # are there cases where the games in the "Not Compatible" input are not valid games?
             if event1 in tables["Games:"]:
                 event1_index = tables["Games:"][event1]
             elif event1 in tables["Practices:"]:
-                # TODO: not sure what to put for the practice indices still
                 event1_index = tables["Practices:"][event1]
+            else:
+                print("Not Compatible: EVENT NOT FOUND: ", event1) # TODO flag? ignore?
+                valid_flag = False
 
             if event2 in tables["Games:"]:
                 event2_index = tables["Games:"][event2]
             elif event2 in tables["Practices:"]:
-                # ^^^
                 event2_index = tables["Practices:"][event2]
-            hardConstraints.set_incompatible(event1_index, event2_index)
+            else:
+                print("Not Compatible: EVENT NOT FOUND: ", event2) # TODO flag? ignore?
+                valid_flag = False
+
+            if valid_flag:
+                hardConstraints.set_incompatible(event1_index, event2_index)
 
         elif currentHeader == "Unwanted:":
             unwantedSplit = line.split(", ")
@@ -310,21 +308,31 @@ with open(args.filename, "r") as inputFile:
 
         # ------------------- Parsing Preferences -------------------
         elif currentHeader == "Preferences:":
+            # TODO practice preferences
             # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
             pref_parts = line.split(", ")
             day, time, game, weight = pref_parts
             slot = f"{day}, {time}"
+            # TODO raw game and slot? Does it work with invalid events?
             preference_map[(game, slot)] = int(weight)
 
         # ------------------- Parsing Pair -------------------
+        # TODO practices too?
         elif currentHeader == "Pair:":
+            valid_flag = True
             # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
             game1, game2 = line.split(", ")
             if game1 in tables["Games:"]:
                 game1_index = tables["Games:"][game1]
+            else:
+                valid_flag = False
             if game2 in tables["Games:"]:
                 game2_index = tables["Games:"][game2]
-            pair_map[game1_index] = game2_index
+            else:
+                valid_flag = False
+            
+            if valid_flag:
+                pair_map[game1_index] = game2_index
 
         # # ------------------- Parsing Games (for Tier Map) -------------------
         # elif currentHeader == "Games:":
@@ -335,20 +343,13 @@ with open(args.filename, "r") as inputFile:
         #     tier_map[line] = tier_key
         #     gameCounter += 1
 
-        # ------------------- Parsing Other Sections -------------------
-        # Handle other sections like Game slots, Practice slots, Not compatible, etc.
-        # (Use the code you already provided for these.)
-
-        # create paralelles
+        # create paralleles
         if line:
-            # clean up the excess or none spacing after commas
-            line = re.sub(r",\s*", ", ", line)
-
-            # line = re.sub(r"\s+", " ", line) # cleanup possible excess spaces between words
-            # ^ maybe unneccesary
             if currentHeader == "Games:":
+                # already added to tables
                 continue
             if currentHeader == "Practices:":
+                # already added to tables
                 continue
             else:
                 tables[currentHeader].append(line)
@@ -360,12 +361,10 @@ weights = [args.minfilledWeight, args.prefWeight,
 penalties = [args.gameminPenalty, args.practiceminPenalty,
              args.notpairedPenalty, args.sectionPenalty]
 
-# TODO what needs to be done to get soemthing running?
-# TODO Genetic algorithm will run forever, there should be some way to get best answer after
-# some number of iterations or time. 
-# TODO we need output
 myModel = model.Model(slots, games, practices, preference_map,
                       pair_map, tier_map, weights, penalties)
+
+
 
 # print(args.gameminPenalty)
 
@@ -390,9 +389,39 @@ def print_output(eval, schedule):
 
     for game_index, _ in enumerate(schedule[GAME]):
         # only need the first slot index, half hour was for collisions
-        game_slot = main.get_slot_string(schedule[GAME][game_index][GAME_TIME][0])
+        if schedule[GAME][game_index][GAME_TIME][0]:
+            game_slot = main.get_slot_string(schedule[GAME][game_index][GAME_TIME][0])
+        else: 
+            game_slot = "NOT ASSIGNED"
         print(games_names[game_index], ":", game_slot)
 
         for prac_index, _ in enumerate(schedule[PRAC][game_index]):
-            prac_slot = main.get_slot_string(schedule[PRAC][game_index][prac_index][0])
+            if schedule[PRAC][game_index][prac_index][0]:
+                prac_slot = main.get_slot_string(schedule[PRAC][game_index][prac_index][0])
+            else: 
+                prac_slot = "NOT ASSIGNED"
             print(prac_names[game_index][prac_index], ":", prac_slot)
+
+
+# s_games = []
+# s_practices = []
+# s_slots = [[]]
+# test_schedule = [s_games, s_practices, s_slots]
+
+# M = 0  # not needed, just use the number. Nice for CTRL+D changes to T or F
+# T = SLOTS_PER_DAY
+# F = SLOTS_PER_DAY * 2
+
+# # def set_test_1(s_games, s_practices, s_slots, test_schedule):
+# s_games = [[1, (0,1)],[1, (0,1)],[1, (0,1)],[1, (0,1)], [-1000, (SLOTS_PER_DAY, SLOTS_PER_DAY+1)]]
+# s_practices = [
+#         [(2,3),(2,3),(2,3),(2,3), (SLOTS_PER_DAY, SLOTS_PER_DAY+1)],
+#         [],
+#         [],
+#         [],
+#         []
+#     ]
+# s_slots = main.init_slots(1,1,1,1)
+# test_schedule = [s_games, s_practices, s_slots]
+
+# print_output(0, test_schedule)
