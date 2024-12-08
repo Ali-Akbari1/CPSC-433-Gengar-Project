@@ -134,7 +134,6 @@ with open(args.filename, "r") as inputFile:
                 slotInd+=1
                 slots[slotInd][2] = int(pracLine[2])
                 slots[slotInd][3] = int(pracLine[3])
-                slotInd+=1
             else:
                 # 4 slots for Friday practices
                 slotInd = main.get_slot_index(pracLine[0], pracLine[1])
@@ -155,7 +154,7 @@ with open(args.filename, "r") as inputFile:
 
             lineCopy = line.split()
             age = int(lineCopy[1][1:3])     # get age from age/tier, for example: U18T3 should be 18
-            division = int(lineCopy[3][1:])
+            division = int(lineCopy[3])     # divisions can be more than the last digit. Leading zero will not change int()
 
             # store the name
             games_names.append(line)
@@ -188,28 +187,37 @@ with open(args.filename, "r") as inputFile:
             # tables["Games:"][line] = game_index
             # this will let us read the output without searching dict values as well. 
 
-            # Extracting the tier, e.g., "CSSC O19T1"
-            tier_key = " ".join(line.split()[:2])
-            # TODO tier map maps string to substring, we need to track the game names for
-            # output anyways, we can just use the string itself and adjacent encodings
-            tier_map[line] = tier_key
+            # tier map also should be indices, not strings. We need the correct indices, 
+            # so do this in the first practice check to ensure games are all read in. 
+            # No:  tier_map["CMSA U17T1 DIV 01"] = "CMSA U17T1"
+            # No:  tier_map[GAME_CODE] = ?
+            # Yes: tier_map[game_index] = GAME_CODE
 
 
         # ####################### Parsing Practices: ########################
         if currentHeader == "Practices:":
-            # games are done, sort them 
+            # ---------------------- Finish off games -------------------------
+            # sorting to correct order and reading in new indices
             if not sorted_:
                 # alphabetize the games, keeping relative order to the abstracted games
                 zipped_ = list(zip(games_names, games))
                 sorted_ = sorted(zipped_, key=lambda x:x[0])
 
                 games_names, games = zip(*sorted_)
-                # TODO output uses games_names
 
-                # now the indices will be correct so we can populate the dictionary entries
+                # now the indices will be correct so we can populate the dictionary entries and
+                # tier map
                 for name_ in games_names:
                     tables["Games:"][name_] = gameCounter
                     gameCounter +=1
+
+                    # decode the gamecode to enter into tier map
+                    game_code = abs(games[gameCounter][GAME_CODE])
+                    if game_code > EVENING_CONST:
+                        game_code -= EVENING_CONST
+                    tier_map[gameCounter] = game_code
+                    # gameCounter is the INDEX of the game in the games array,
+                    # game_code is the tier and league information. 
 
             # TODO open practices
             for i in range(len(line)):
