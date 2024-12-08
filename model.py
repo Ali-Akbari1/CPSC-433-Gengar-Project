@@ -142,3 +142,18 @@ class Model:
             print(
                 f"--- Individual {i} (Score={self.evaluate_solution(schedule)}) ---")
             print_schedule(schedule, events=events, slots=slots)
+
+    def find_best_schedule(self):
+
+        if not self.population:
+            print("Population is empty. No schedules to evaluate.")
+            return None
+
+        # Use the min function with evaluate_solution as the key to find the best schedule
+        best_schedule = min(self.population, key=self.evaluate_solution)
+        best_score = self.evaluate_solution(best_schedule)
+
+        print(f"Best Schedule Found with Score: {best_score}")
+        print_schedule(best_schedule, events=True, slots=True)
+
+        return best_schedule
