@@ -60,6 +60,7 @@ with open(args.filename, "r") as inputFile:
     # tables[someHeader] = [rows] <- list of rows (for Games and Practices I used a Dictionary instead)
     # tables[Games:/Practices:] = {Input line:index}
     games = []  # games array [(g0, (), ...]
+    games_names = []  # games array ["CSMA U16...", "CUSA U12...", ...]
     practices = []  # practices array [ [(), (), (), ]
     #                   [(), ()], [] ]
 
@@ -175,11 +176,13 @@ with open(args.filename, "r") as inputFile:
             age = int(lineCopy[1][1:3])     # age/tier
             division = int(lineCopy[3][1:])
 
+            # store the name
+            games_names.append(line)
+
+            # store the encoded game
             # get a unique number for the league and tier, this is used for open practices
             league_and_tier = lineCopy[0] + " " + lineCopy[1]
             game_id = league_and_tiers(league_and_tier)
-
-            # TODO: game index creation logic
             # Day games for under 16 have identifier: 0 < game_id < EVENING_CONST
             if (age < 16) and (division < 9):
                 games.append([game_id, ()])
@@ -193,14 +196,34 @@ with open(args.filename, "r") as inputFile:
             elif (age >= 16) and (division >= 9):
                 games.append([-game_id-main.EVENING_CONST, ()])
 
+            # make a practice row for game, these are unnamed until pratices are read in. 
+            # (so the order of games can switch)
             practices.append([])
 
-            # for quick referencing the index of game strings, used in practices
-            tables["Games:"][line] = gameCounter
+            # game counter will be incorrect after alphabetizing. Game counter moved to out of loop. 
+            # this needs to preserve order so that we can alphabetize it. Using an array for
+            # that, then changing all the values. 
+            # tables["Games:"][line] = game_index
+            # this will let us read the output without searching dict values as well. 
+
             # Extracting the tier, e.g., "CSSC O19T1"
             tier_key = " ".join(line.split()[:2])
+            # TODO tier map maps string to substring, we need to track the game names for
+            # output anyways, we can just use the string itself and adjacent encodings
             tier_map[line] = tier_key
-            gameCounter += 1
+
+        
+        # alphabetize the games, keeping relative order to the abstracted games
+        zipped_ = list(zip(games_names, games))
+        sorted_ = sorted(zipped_, key=lambda x:x[0])
+        games_names, games = zip(*sorted_)
+        # TODO output uses games_names
+
+        # now the indices will be correct so we can populate the dictionary entries
+        for name_ in games_names:
+            tables["Games:"][name_] = gameCounter
+            gameCounter +=1
+
 
         # ####################### Parsing Practices: ########################
         if currentHeader == "Practices:":
