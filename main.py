@@ -96,7 +96,7 @@ def print_schedule(schedule, events=True, slots=False):
 
 class StringToUniqueNumber:
     # creates two dicts. One to search for assigned number, the other to search for string given number. 
-    # (one for input to encoding, the other for encoding to output)
+    # (one for input to encoding, the other for encoding to output maybe for debugging)
     def __init__(self):
         self.string_to_number = {}
         self.number_to_string = {}
@@ -119,11 +119,9 @@ class StringToUniqueNumber:
 # lamb = strs.get_number("lamb")
 # beef = strs.get_number("beef")
 # duck = strs.get_number("duck")
-# fuck = strs.get_number("fuck")
-# print(lamb, beef, duck, fuck)
+# print(lamb, beef, duck)
 
 # lamb = strs.get_string(lamb)
 # beef = strs.get_string(beef)
 # duck = strs.get_string(duck)
-# fuck = strs.get_string(fuck)
-# print(lamb, beef, duck, fuck)
+# print(lamb, beef, duck)

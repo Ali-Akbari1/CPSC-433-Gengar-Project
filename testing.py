@@ -55,6 +55,8 @@ with open(args.filename, "r") as inputFile:
     tier_map = {}
     tables = {}  # Using a dictionary, key: headers, values: rows
 
+    league_and_tiers = main.StringToUniqueNumber()
+
     # tables[someHeader] = [rows] <- list of rows (for Games and Practices I used a Dictionary instead)
     # tables[Games:/Practices:] = {Input line:index}
     games = []  # games array [(g0, (), ...]
@@ -173,16 +175,23 @@ with open(args.filename, "r") as inputFile:
             age = int(lineCopy[1][1:3])     # age/tier
             division = int(lineCopy[3][1:])
 
+            # get a unique number for the league and tier, this is used for open practices
+            league_and_tier = lineCopy[0] + " " + lineCopy[1]
+            game_id = league_and_tiers(league_and_tier)
+
             # TODO: game index creation logic
-            # idk if this is right...
+            # Day games for under 16 have identifier: 0 < game_id < EVENING_CONST
             if (age < 16) and (division < 9):
-                games.append([1, ()])
+                games.append([game_id, ()])
+            # Evening games for under 16 have identifier: EVENING_CONST < game_id
             elif (age < 16) and (division >= 9):
-                games.append([1+main.EVENING_CONST, ()])
+                games.append([game_id+main.EVENING_CONST, ()])
+            # Day games for over 16 have identifier: -EVENING_CONST < game_id < 0
             elif (age >= 16) and (division < 9):
-                games.append([-1, ()])
+                games.append([-game_id, ()])
+            # Day games for over 16 have identifier: game_id < -EVENING_CONST
             elif (age >= 16) and (division >= 9):
-                games.append([-1-main.EVENING_CONST, ()])
+                games.append([-game_id-main.EVENING_CONST, ()])
 
             practices.append([])
 
