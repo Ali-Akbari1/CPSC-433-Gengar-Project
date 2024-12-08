@@ -9,6 +9,7 @@ class OrTreeNode:
     def __init__(self, pr, sol="?", A=None, B=None, weights=None, penalties=None,
                  preference_map=None, pair_map=None, tier_map=None, r=10, children=None):
         """
+        update pr
         pr = (games, practices, slots)
         sol in { "?", "yes", "no" }
         A, B = optional parent solutions (Schedules) for bias in crossover
@@ -20,32 +21,35 @@ class OrTreeNode:
         self.sol = sol
         self.A = A
         self.B = B
+
         self.weights = weights
         self.penalties = penalties
         self.preference_map = preference_map
         self.pair_map = pair_map
         self.tier_map = tier_map
+
         self.r = r
         self.children = children if children is not None else []
 
     def is_leaf(self):
-        # Leaf if no children
-        return len(self.children) == 0
+        # leaf off if no children
+         return len(self.children) == 0
 
     def haveParents(self):
-        # Check if A and B (parent solutions) are set
+        # check if A and B (parent solutions) are set
         return self.A is not None and self.B is not None
 
     def isComplete(self):
-        # Check if no {?} remain in games or practices
+        # Check if there is no {?} remain in games or practices
         games, practices, slots = self.pr
         for g in games:
             if g[GAME_TIME] == ():
-                return False
+                 return False
         for gpr in practices:
             for p in gpr:
+
                 if p == ():
-                    return False
+                     return False
         return True
 
     # might make the model more constrained towards one solution but we need something that works
@@ -64,50 +68,51 @@ class OrTreeNode:
         return None
 
     def event_in_parents(self, event):
-        # Check if given event is in A or B similarly assigned.
-        # event is either int (game id) or tuple (game_id, practice_id)
+        # check if given event is in A or B similarly assigned
+        # event is either int (game id ) or tuple ( game_id, practice_id)
         if not self.haveParents():
             return False
-        # Extract assignments from A and B and check if event is assigned similarly in them.
+        # get the assignments from A and B and check if event is assigned similarly in them
         # A and B are schedules: (slots, games, practices)
-        # We can just check if they have a non-? assignment for this event.
+        # We can just check if they have a non? assignment for this targeted event
+        
         A_games, A_practices, A_slots = self.A
         B_games, B_practices, B_slots = self.B
 
         if isinstance(event, int):
-            # Game
-            return A_games[event][GAME_TIME] != () and A_games[event][GAME_TIME] == B_games[event][GAME_TIME]
+            #the Game
+             return A_games[event][GAME_TIME] != () and A_games[event][GAME_TIME] == B_games[event][GAME_TIME]
         else:
+            
             g, p = event
-            return (A_practices[g][p] != () and A_practices[g][p] == B_practices[g][p])
+            
+            return ( A_practices[g][p] != () and A_practices[g][p] == B_practices[g][p])
 
     def fleaf(self):
-        # According to the model:
+        # based off model, 
         # 1. 0 if constr(pr) = false
         # if not self.constr():
         #     return 0
         # 2. 0 if no '?' remain (complete solution)
 
-        if self.isComplete():
+        if self.isComplete( ):
             return 0
 
         # 3. 1 if A and B are set and the next event is in both A and B
-        next_event = self.next_unassigned_event()
+        next_event = self.next_unassigned_event( )
         if self.haveParents() and self.event_in_parents(next_event):
             return 1
 
         # 4. 2 + Eval(pr) + Random(0, r)
-        cost = eval_cost(self.pr, self.weights, self.penalties,
-                         self.preference_map, self.pair_map, self.tier_map)
+        cost = eval_cost(self.pr, self.weights, self.penalties, self.preference_map, self.pair_map, self.tier_map )
         return 2 + cost + random.randint(0, self.r)
 
     def ftrans(self):
-        # According to the model:
         # 1. (pr, ?) -> (pr, no) if constr(pr)=false
         # if not self.constr():
-        #     self.sol = "no"
-        #     self.children = []
-        #     return []
+        #    self.sol = "no"
+        #    self.children = []
+        #    return []
 
         # 2. (pr, ?) -> (pr, yes) if no '?' remain
         if self.isComplete():
@@ -116,12 +121,12 @@ class OrTreeNode:
             return []
 
         # 3. (pr, ?) -> (pr, ?, b1, ..., bn) otherwise
-        # Expand the next event in all possible ways (Altern).
+        #expand the next event in all possible ways (Altern).
         next_event = self.next_unassigned_event()
         possible_slots = find_possible_slots(next_event, self.pr)
 
         if not possible_slots:
-            # No possible assignment leads to a dead end
+            #no possible assignment and it leads to a dead end
             self.sol = "no"
             self.children = []
             return []
@@ -132,7 +137,9 @@ class OrTreeNode:
         for ps in possible_slots:
             # Copy the pr
             new_slots = [list(s)[:] for s in slots]
+            
             new_games = [list(g) for g in games]
+            
             new_practices = [list(row) for row in practices]
 
             new_pr = (new_games, new_practices, new_slots)
@@ -150,10 +157,10 @@ class OrTreeNode:
                 children.append(child)
                 # unassign is not needed on the copy since we made a copy
             else:
-                # If can't assign, skip this alternative
+                # If we can't assign, skip this alternative
                 pass
 
-        self.children = children
+        self.children =  children
         return children
 
     def orTreeCrossover(self, A, B, pr):
@@ -167,21 +174,26 @@ class OrTreeNode:
         for i in range(len(games)):
             if i >= len(A_games) or i >= len(B_games):
                 continue
+
             if A_games[i][GAME_TIME] != () and A_games[i][GAME_TIME] == B_games[i][GAME_TIME]:
-                assign(i, A_games[i][GAME_TIME], pr)
+                assign(i, A_games[i][GAME_TIME], pr )
 
         # Assign events that both parents agree on for practices
-        for gi in range(len(practices)):
+        for gi in range(len(practices )):
+
             for pi in range(len(practices[gi])):
-                if gi >= len(A_practices) or gi >= len(B_practices):
+                if gi >= len(
+                    A_practices ) or gi >= len(B_practices):
                     continue
                 if pi >= len(A_practices[gi]) or pi >= len(B_practices[gi]):
                     continue
+
                 if A_practices[gi][pi] != () and A_practices[gi][pi] == B_practices[gi][pi]:
                     assign((gi, pi), A_practices[gi][pi], pr)
 
         # Handle remaining '?' events
         # Handle games
+
         for i, g in enumerate(games):
             if g[GAME_TIME] == ():
                 # This game is still '?'
@@ -214,7 +226,8 @@ class OrTreeNode:
                 if p == ():
                     # This practice is still '?'
                     order = [A, B]
-                    random.shuffle(order)
+
+                    random.shuffle(order )
                     first_parent = order[0]
                     second_parent = order[1]
 
@@ -222,28 +235,28 @@ class OrTreeNode:
                     s_games, s_prac, s_slots = second_parent
 
                     # Try first parent's assignment
-                    if gi < len(f_prac) and pi < len(f_prac[gi]) and f_prac[gi][pi] != ():
+                    if gi < len(f_prac ) and pi < len(f_prac[gi] ) and f_prac[gi][pi] != ():
                         if not assign((gi, pi), f_prac[gi][pi], pr):
                             # Failed, try second parent
-                            if gi < len(s_prac) and pi < len(s_prac[gi]) and s_prac[gi][pi] != ():
+                            if gi < len(s_prac) and pi < len( s_prac[gi]) and s_prac[gi][pi] != ():
                                 if not assign((gi, pi), s_prac[gi][pi], pr):
                                     pass  # Both parents failed to assign
                     else:
                         # first parent '?', try second parent's assignment
                         if gi < len(s_prac) and pi < len(s_prac[gi]) and s_prac[gi][pi] != ():
                             if not assign((gi, pi), s_prac[gi][pi], pr):
-                                pass  # Both parents failed to assign
+                                pass  # this means both parents failed to assign
                         else:
-                            pass  # Both parents have '?', leave as '?'
+                            pass  # this means both parents have '?', leave as '?'
 
         return pr
 
     def runCrossoverSearch(self, A, B, max_depth=1000):
         """
         Given parents A and B:
-        1. Use orTreeCrossover to pre-assign where possible.
-        2. Continue filling the rest using the or-tree search.
-        3. If search returns a complete schedule, return it.
+        1. we must use orTreeCrossover to pre-assign where possible
+        2. Continue filling the rest using the or-tree search
+        3. if search returns a complete schedule, return it.
         """
         # Pre-assign common elements using orTreeCrossover
         self.A = A
@@ -252,27 +265,29 @@ class OrTreeNode:
 
         # Check if the pre-assigned result is already complete
         if self.isComplete():
-            # If crossover alone yielded a complete schedule, return it
+            # If crossover alone gave a complete schedule, return it
+            
             return self.pr
 
-        # Continue filling the remaining '?' using or-tree search
+        # Continue filling the remaining '?' using the or-tree search
         result = self.search(max_depth=max_depth)
 
         # Return the result of the search (either a complete schedule or None)
         return result
 
     def search(self, max_depth=1000, depth=0):
-        # Perform a backtracking Or-tree search as defined:
+        # Perform a backtracking Or-tree search defined;
         # Evaluate this node
         val = self.fleaf()
         if self.sol == "no":
+
             return None
         if self.sol == "yes":
             # return this solution
-            return self.pr
+             return self.pr
 
         if depth > max_depth:
-            return None
+             return None
 
         # Not complete, expand
         children = self.ftrans()
@@ -285,7 +300,8 @@ class OrTreeNode:
         scored_children.sort(key=lambda x: x[0])
 
         for _, child in scored_children:
-            result = child.search(max_depth, depth+1)
+            result = child.search(max_depth, depth+1 )
+            
             if result is not None:
                 return result
         return None
