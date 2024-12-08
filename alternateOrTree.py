@@ -9,7 +9,7 @@ class OrTreeNode:
     def __init__(self, pr, sol="?", A=None, B=None, weights=None, penalties=None,
                  preference_map=None, pair_map=None, tier_map=None, r=10, children=None):
         """
-        pr = (slots, games, practices)
+        pr = (games, practices, slots)
         sol in { "?", "yes", "no" }
         A, B = optional parent solutions (Schedules) for bias in crossover
         weights, penalties, preference_map, pair_map, tier_map = environment parameters
@@ -38,7 +38,7 @@ class OrTreeNode:
 
     def isComplete(self):
         # Check if no {?} remain in games or practices
-        slots, games, practices = self.pr
+        games, practices, slots = self.pr
         for g in games:
             if g[GAME_TIME] == ():
                 return False
@@ -58,7 +58,7 @@ class OrTreeNode:
     # might make the model more constrained towards one solution but we need something that works
     def next_unassigned_event(self):
         # Find the first event that is still '?'
-        slots, games, practices = self.pr
+        games, practices, slots = self.pr
         # Games first
         for i, g in enumerate(games):
             if g[GAME_TIME] == ():
@@ -78,8 +78,8 @@ class OrTreeNode:
         # Extract assignments from A and B and check if event is assigned similarly in them.
         # A and B are schedules: (slots, games, practices)
         # We can just check if they have a non-? assignment for this event.
-        A_slots, A_games, A_practices = self.A
-        B_slots, B_games, B_practices = self.B
+        A_games, A_practices, A_slots = self.A
+        B_games, B_practices, B_slots = self.B
 
         if isinstance(event, int):
             # Game
@@ -134,7 +134,7 @@ class OrTreeNode:
             return []
 
         children = []
-        slots, games, practices = self.pr
+        games, practices, slots = self.pr
 
         for ps in possible_slots:
             # Copy the pr
@@ -142,7 +142,7 @@ class OrTreeNode:
             new_games = [list(g) for g in games]
             new_practices = [list(row) for row in practices]
 
-            new_pr = (new_slots, new_games, new_practices)
+            new_pr = (new_games, new_practices, new_slots)
             if assign(next_event, ps, new_pr):
                 child = OrTreeNode(
                     new_pr, "?",
@@ -164,26 +164,30 @@ class OrTreeNode:
         return children
 
     def orTreeCrossover(self, A, B, pr):
-        # If we have parent solutions A and B, we can pre-assign events that both parents agree on.
-        A_slots, A_games, A_practices = A
-        B_slots, B_games, B_practices = B
-        slots, games, practices = pr
+        games, practices, slots = pr
+        
+        # Unpack parent schedules
+        A_games, A_practices, A_slots = A
+        B_games, B_practices, B_slots = B
 
-        # First assign events that A and B agree on for games
-        for i in range(len(A_games)):
+        # Assign events that both parents agree on for games
+        for i in range(len(games)):
+            if i >= len(A_games) or i >= len(B_games):
+                continue
             if A_games[i][GAME_TIME] != () and A_games[i][GAME_TIME] == B_games[i][GAME_TIME]:
                 assign(i, A_games[i][GAME_TIME], pr)
 
-        # Assign events that A and B agree on for practices
-        for gi in range(len(A_practices)):
-            for pi in range(len(A_practices[gi])):
+        # Assign events that both parents agree on for practices
+        for gi in range(len(practices)):
+            for pi in range(len(practices[gi])):
+                if gi >= len(A_practices) or gi >= len(B_practices):
+                    continue
+                if pi >= len(A_practices[gi]) or pi >= len(B_practices[gi]):
+                    continue
                 if A_practices[gi][pi] != () and A_practices[gi][pi] == B_practices[gi][pi]:
                     assign((gi, pi), A_practices[gi][pi], pr)
 
-        # for the remaining '?' events attempt to assign them from either A or B
-        # try a random order: first attempt from one parent's assignment, if that fails attempt the other
-        # If both fail or both have no assignment (()), leave as '?'
-
+        # Handle remaining '?' events
         # Handle games
         for i, g in enumerate(games):
             if g[GAME_TIME] == ():
@@ -193,31 +197,23 @@ class OrTreeNode:
                 first_parent = order[0]
                 second_parent = order[1]
 
-                f_slots, f_games, f_prac = first_parent
-                s_slots, s_games, s_prac = second_parent
+                f_games, f_prac, f_slots = first_parent
+                s_games, s_prac, s_slots = second_parent
 
                 # Try first parent's assignment
-                if f_games[i][GAME_TIME] != ():
+                if i < len(f_games) and f_games[i][GAME_TIME] != ():
                     if not assign(i, f_games[i][GAME_TIME], pr):
                         # Failed to assign from first parent, try second parent
-                        if s_games[i][GAME_TIME] != ():
+                        if i < len(s_games) and s_games[i][GAME_TIME] != ():
                             if not assign(i, s_games[i][GAME_TIME], pr):
-                                # Also failed from second parent, leave as '?'
-                                # No action needed, still '?'
-                                pass
-                        else:
-                            # second parent's is also '?', leave as '?'
-                            pass
-                    # if we succeeded on first parent's assignment, nothing else to do
+                                pass  # Both parents failed to assign
                 else:
                     # first parent is '?', try second parent's assignment
-                    if s_games[i][GAME_TIME] != ():
+                    if i < len(s_games) and s_games[i][GAME_TIME] != ():
                         if not assign(i, s_games[i][GAME_TIME], pr):
-                            # failed from second parent as well, leave as '?'
-                            pass
+                            pass  # Both parents failed to assign
                     else:
-                        # both are '?', leave as '?'
-                        pass
+                        pass  # Both parents have '?', leave as '?'
 
         # Handle practices
         for gi, gpr in enumerate(practices):
@@ -229,30 +225,24 @@ class OrTreeNode:
                     first_parent = order[0]
                     second_parent = order[1]
 
-                    f_slots, f_games, f_prac = first_parent
-                    s_slots, s_games, s_prac = second_parent
+                    f_games, f_prac, f_slots = first_parent
+                    s_games, s_prac, s_slots = second_parent
 
                     # Try first parent's assignment
-                    if f_prac[gi][pi] != ():
+                    if gi < len(f_prac) and pi < len(f_prac[gi]) and f_prac[gi][pi] != ():
                         if not assign((gi, pi), f_prac[gi][pi], pr):
                             # Failed, try second parent
-                            if s_prac[gi][pi] != ():
+                            if gi < len(s_prac) and pi < len(s_prac[gi]) and s_prac[gi][pi] != ():
                                 if not assign((gi, pi), s_prac[gi][pi], pr):
-                                    # fail again, leave as '?'
-                                    pass
-                            else:
-                                # second parent is '?', leave as '?'
-                                pass
-                        # if succeeded, no action needed
+                                    pass  # Both parents failed to assign
                     else:
-                        # first parent '?', try second parent
-                        if s_prac[gi][pi] != ():
+                        # first parent '?', try second parent's assignment
+                        if gi < len(s_prac) and pi < len(s_prac[gi]) and s_prac[gi][pi] != ():
                             if not assign((gi, pi), s_prac[gi][pi], pr):
-                                # fail, leave as '?'
-                                pass
+                                pass  # Both parents failed to assign
                         else:
-                            # both '?'
-                            pass
+                            pass  # Both parents have '?', leave as '?'
+
         return pr
 
     def runCrossoverSearch(self, A, B, max_depth=1000):
@@ -306,3 +296,128 @@ class OrTreeNode:
             if result is not None:
                 return result
         return None
+
+
+# # ------------------------------------
+# # TEST CODE SECTION
+# # ------------------------------------
+# # Below is an example test setup. Adjust as needed depending on your environment.
+
+# if __name__ == "__main__":
+#     # Create a small test scenario for demonstration:
+#     # Remember our pr = (games, practices, slots)
+#     # Let's define minimal mock data:
+#     # Each game or practice time is initially set to (), indicating unassigned.
+#     # GAME_TIME is an index used by the schedule structure (from main import GAME_TIME).
+
+#     # Mock data (these are just example formats, adapt as per your actual usage):
+#     # Suppose a game is structured like: [GAME_ID, GAME_TIME]
+#     # and a practice is structured like: [PRACTICE_TIME], etc.
+#     test_games = [[0, ()], [1, ()]]  # Two games, times unassigned
+#     test_practices = [
+#         [(), ()],  # First team's two practices unassigned
+#         [()]        # Second team, one practice unassigned
+#     ]
+#     test_slots = [
+#         [1, 1, 1, 1],  # slot index 0
+#         [1, 1, 1, 1],  # slot index 1   # slot index 3
+#     ]
+#   # A simple slot structure (one day, three possible slot indices)
+
+#     pr = (test_games, test_practices, test_slots)
+#     node = OrTreeNode(
+#         pr, 
+#         weights=[1, 1, 1, 1], 
+#         penalties=[1, 1, 1, 1],
+#         preference_map={},  # empty dict if you have no preferences
+#         pair_map={},        # empty dict to avoid NoneType errors
+#         tier_map={}
+#     )
+
+
+#     # --- Testing each method ---
+#     # 1. Test is_leaf()
+#     # Just run:
+#     # python your_file.py
+#     # You should see "True" since no children initially.
+#     print("Testing is_leaf:")
+#     print(node.is_leaf())  # Expect True
+
+#     # 2. Test haveParents()
+#     # Expect False, since A and B not set
+#     print("Testing haveParents:")
+#     print(node.haveParents())  # Expect False
+
+#     # 3. Test isComplete()
+#     # All events are unassigned, so expect False
+#     print("Testing isComplete:")
+#     print(node.isComplete())  # Expect False
+
+#     # 4. Test next_unassigned_event()
+#     # Should return the index of the first unassigned game, which is 0
+#     print("Testing next_unassigned_event:")
+#     print(node.next_unassigned_event())  # Expect 0 (the first game is unassigned)
+
+#     # 5. Test event_in_parents()
+#     # No parents set, so should return False
+#     print("Testing event_in_parents with event=0:")
+#     print(node.event_in_parents(0))  # Expect False
+
+#     # 6. Test fleaf()
+#     # Not complete, no parents, so fleaf = 2 + cost + random(0, r)
+#     # cost likely 0 if no constraints. Expect something >= 2.
+#     print("Testing fleaf:")
+#     print(node.fleaf())  # Expect an integer >= 2
+
+#     # 7. Test ftrans() 
+#     # Without actual constraints and slot assignment logic from other modules,
+#     # we may not get meaningful children. If find_possible_slots returns no possibilities,
+#     # we get "no" solution. For a real test, find_possible_slots would need proper mock data.
+#     # For now, just run it to see it doesn't crash:
+#     print("Testing ftrans:")
+#     children = node.ftrans()
+#     print("Number of children:", len(children))
+#     # Expect either 0 (if no slot assignments possible) or more.
+
+#     # 8. Test orTreeCrossover()
+#     # We need two parent schedules A and B. We'll just mock them as well:
+#     A = (
+#         [[0, (0,1)], [1, ()]],  # Two games: Game 0 assigned to slots 0,1; Game 1 unassigned
+#         [[(1,), ()], [()]],      # Two practices: Team 0 has 2 practices, Team 1 has 1 practice
+#         [
+#             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1],
+#             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1]
+#         ]  # 8 slot lists matching pr's slots
+#     )
+
+#     B = (
+#         [[0, (0,1)], [1, ()]],  # Two games: Game 0 assigned to slots 0,1; Game 1 unassigned
+#         [[(1,), ()], [()]],      # Two practices: Team 0 has 2 practices, Team 1 has 1 practice
+#         [
+#             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1],
+#             [1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1]
+#         ]  # 8 slot lists matching pr's slots
+#     )  # Identical to A for simplicity
+ 
+#     node.A = A
+#     node.B = B
+#     node.orTreeCrossover(A, B, pr)
+#     # If A and B agree on assignments, pr might now be partially assigned.
+#     print("Testing orTreeCrossover - pr after crossover:")
+#     print(node.pr)  # Expect some assignments now set.
+
+#     # 9. Test runCrossoverSearch()
+#     # With mock data not fully set up, this may not produce a complete schedule,
+#     # but we can still run it to verify no errors:
+#     print("Testing runCrossoverSearch:")
+#     result = node.runCrossoverSearch(A, B)
+#     print("Crossover search result:", result)
+#     # Expect either a completed schedule or None, depending on data.
+
+#     # 10. Test search()
+#     # Similar note as above. If data or constraints are not set for a solvable scenario,
+#     # may return None.
+#     print("Testing search:")
+#     search_result = node.search()
+#     print("Search result:", search_result)
+#     # Expect None or a schedule if possible.

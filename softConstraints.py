@@ -16,7 +16,7 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 def eval_min(schedule, pen_gamemin, pen_practicemin):
     print(schedule[0])
     penalty = 0
-    for slot in schedule[0]: ## was for slot in schedule[SLOT] but SLOT is equal to 2
+    for slot in schedule[2]: ## was for slot in schedule[SLOT] but SLOT is equal to 2
         #print(slot)
         if slot[GAMN] > 0 and slot[GAMX] < slot[GAMN]:
             penalty += (slot[GAMN] - slot[GAMX]) * pen_gamemin
@@ -30,7 +30,7 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 # pref where games are scheduled
 def eval_pref(schedule, preference_map):
     penalty = 0
-    for game_id, game_slots in enumerate(schedule[1]): ## was schedule[GAME] but GAME is 0
+    for game_id, game_slots in enumerate(schedule[0]): ## was schedule[GAME] but GAME is 0
         if game_slots[1]:
             for slot in game_slots[1]:
                 penalty += preference_map.get((game_id, slot), 0)
@@ -43,7 +43,7 @@ def eval_pair(schedule, pair_map, pen_notpaired):
     for game1id in pair_map:
         print(game1id)
         game2id = pair_map[game1id]
-        game_slot = schedule[1][int(game1id)][1]
+        game_slot = schedule[0][int(game1id)][GAME_TIME]
         paired_slot = schedule[1][game2id][1]
         if game_slot != paired_slot:
             penalty += pen_notpaired
@@ -54,11 +54,12 @@ def eval_pair(schedule, pair_map, pen_notpaired):
 ## if two teams in the same tier 
 def eval_secdiff(schedule, tier_map, pen_section):
     penalty = 0
-    for slot_index, slot in enumerate(schedule[0]):
+    for slot_index, slot in enumerate(schedule[2]):
         # List of leagues in the current slot
         leagues_in_slot = [
-            game[GAME_CODE] for game in schedule[1] if slot_index in game[GAME_TIME]
+            game[GAME_CODE] for game in schedule[0] if slot_index in game[GAME_TIME]
         ]
+
         for league1 in leagues_in_slot:
             for league2 in leagues_in_slot:
                 if league1 != league2 and tier_map[league1] == tier_map[league2]:
