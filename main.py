@@ -57,11 +57,39 @@ def get_slot_index(day, time):
         res += 1
 
     # monday is default, nothing needs to be done
-    if day == "t" or day == "T":
+    if day == "t" or day == "T" or day == "TU":
         res += SLOTS_PER_DAY
-    elif day == "f" or day == "F":
+    elif day == "f" or day == "F" or day == "FR":
         res += SLOTS_PER_DAY * 2
     return res
+
+def get_slot_index_from_string(day_time):
+    day, time = day_time.split(",")
+    day = day.strip()
+    time = time.strip()
+    return get_slot_index(day, time)
+
+def get_slot_string(slot_index):
+    if slot_index<0:
+        print("err, slot index cannot be negative. ")
+        exit()
+    
+    day = ""
+    if slot_index < SLOTS_PER_DAY:
+        day = "MO"
+    elif slot_index < SLOTS_PER_DAY*2:
+        day = "TU"
+        slot_index -= SLOTS_PER_DAY
+    elif slot_index < SLOTS_PER_DAY*3:
+        day = "FR"
+        slot_index -= SLOTS_PER_DAY*2
+    else:
+        print("slot index too high, max is:", SLOTS_PER_DAY*3)
+        exit()
+    
+    hour = (slot_index//2) + 8
+    min = "00" if slot_index % 2 == 0 else "30"
+    return day + ", " + str(hour) + ":" + min
 
 
 
@@ -92,6 +120,7 @@ def print_schedule(schedule, events=True, slots=False):
         print("\n-------- SLOTS --------")
         for s, slot in enumerate(schedule[SLOT]):
             print(s, slot)
+
 
 
 class StringToUniqueNumber:
@@ -138,3 +167,75 @@ class StringToUniqueNumber:
 # sorted_names, sorted_games = zip(*sorted_gam)
 # print(sorted_names)
 # print(sorted_games)
+
+
+
+def test_get_slot_with_get_slot_index():
+    string = "MO, 8:00"
+    print(get_slot_string(get_slot_index_from_string(string)) == string)
+    string = "TU, 8:00"
+    # print(get_slot_index_from_string(string))
+    # print(get_slot(get_slot_index_from_string(string)))
+    print(get_slot_string(get_slot_index_from_string(string)) == string)
+    string = "FR, 8:00"
+    print(get_slot_string(get_slot_index_from_string(string)) == string)
+    string = "MO, 20:30"
+    print(get_slot_string(get_slot_index_from_string(string)) == string)
+    string = "TU, 20:30"
+    print(get_slot_string(get_slot_index_from_string(string)) == string)
+    string = "FR, 20:30"
+    print(get_slot_string(get_slot_index_from_string(string)) == string)
+
+# test_get_slot_with_get_slot_index()
+
+
+
+#################################### Testing for testing.py with some dummy values
+# # needs access to game_names
+# def print_output(eval, schedule):
+    
+#     games_names = ["1", "2"]
+#     prac_names = [["1:0", "1:1"],["2:0", "2:1"]]
+#     print("Eval-value:", eval)
+
+#     for game_index, _ in enumerate(schedule[GAME]):
+#         # only need the first slot index, half hour was for collisions
+#         game_slot = get_slot_string(schedule[GAME][game_index][GAME_TIME][0])
+#         print(games_names[game_index], ":", game_slot)
+
+#         for prac_index, _ in enumerate(schedule[PRAC][game_index]):
+#             prac_slot = get_slot_string(schedule[PRAC][game_index][prac_index][0])
+#             print(prac_names[game_index][prac_index], ":", prac_slot)
+
+
+
+# # Sample Output (not related to above inputs)
+# # Eval-value: 30
+# # CMSA U13T3 DIV 01 : MO, 10:00
+# # CMSA U13T3 DIV 01 PRC 01 : TU, 10:00
+# # CMSA U13T3 DIV 02 : MO, 14:00
+# # CMSA U13T3 DIV 02 OPN 02 : MO, 8:00
+# # CMSA U17T1 DIV 01 : TU, 9:30
+# # CMSA U17T1 PRC 01 : MO, 8:00
+# # CUSA O18 DIV 01 : MO, 8:00
+# # CUSA O18 DIV 01 PRC 01 : FR, 10:00
+
+# s_games = []
+# s_practices = []
+# s_slots = [[]]
+# test_schedule = [s_games, s_practices, s_slots]
+
+# M = 0  # not needed, just use the number. Nice for CTRL+D changes to T or F
+# T = SLOTS_PER_DAY
+# F = SLOTS_PER_DAY * 2
+
+# # def set_test_1(s_games, s_practices, s_slots, test_schedule):
+# s_games = [[1, (0,1)], [-1000, (SLOTS_PER_DAY, SLOTS_PER_DAY+1)]]
+# s_practices = [
+#         [(2,3), (SLOTS_PER_DAY, SLOTS_PER_DAY+1)],
+#         [(SLOTS_PER_DAY+1,SLOTS_PER_DAY+2), (10,11)]
+#     ]
+# s_slots = init_slots(1,1,1,1)
+# test_schedule = [s_games, s_practices, s_slots]
+
+# print_output(0, test_schedule)

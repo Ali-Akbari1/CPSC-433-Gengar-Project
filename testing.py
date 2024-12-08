@@ -4,6 +4,12 @@ import hardConstraints
 import main
 import model
 
+from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
+            GAME, GAME_CODE, GAME_TIME, \
+            PRAC, \
+            SLOT, GAMX, GAMN, PRAX, PRAN, \
+            EVENING_CONST, EVENING_BOUND
+
 # --------------------------- Setup ---------------------------
 # Create command line arguments
 inputParser = argparse.ArgumentParser()
@@ -46,6 +52,8 @@ def get_associated_game(prac):
 #     else:            # F 104-129
 #         return 84+time -16
 
+games_names = []  # games array ["CSMA U16...", "CUSA U12...", ...]
+prac_names = []  # practice array [["s", "s", "s"], ["s", "s", "s"], ...]
 
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
@@ -60,7 +68,6 @@ with open(args.filename, "r") as inputFile:
     # tables[someHeader] = [rows] <- list of rows (for Games and Practices I used a Dictionary instead)
     # tables[Games:/Practices:] = {Input line:index}
     games = []  # games array [(g0, (), ...]
-    games_names = []  # games array ["CSMA U16...", "CUSA U12...", ...]
     practices = []  # practices array [ [(), (), (), ]
     #                   [(), ()], [] ]
 
@@ -227,13 +234,17 @@ with open(args.filename, "r") as inputFile:
 
         # ####################### Parsing Practices: ########################
         if currentHeader == "Practices:":
+            # TODO open practices
             for i in range(len(line)):
+                # TODO yikes, we do not need to do that much work
                 # slice throught the string until we have a substring in Games
                 subString = line[:i+1]
                 # print(subString)
                 # print(tables["Games:"])
                 if subString in tables["Games:"]:
-                    practices[tables["Games:"][subString]].append(())
+                    associated_game_index = tables["Games:"][subString]
+                    practices[associated_game_index].append(())
+                    prac_names[associated_game_index].append(line)
                     # add the index of the corresponding game, append an empty tuple
                     break
             pracArr = line.split()
@@ -242,7 +253,8 @@ with open(args.filename, "r") as inputFile:
             if pracArr[-4] != "DIV":
                 tierStr = pracArr[0] + " " + pracArr[1]
                 for key in tables["Games:"]:
-                    if tierStr in key:
+                    if tierStr in key:  # TODO is this ever true?  the whole game line is in there, not just the tierStr = pracArr[0] + " " + pracArr[1]
+                        # TODO how do we handle this for not DIV?
                         practices[tables["Games:"][key]].append(())
                         tables["Practices:"][line] = [
                             tables["Games:"][key], int(pracArr[-1])]
@@ -382,3 +394,15 @@ myModel = model.Model(slots, games, practices, preference_map,
 # print("Pair Map:", pair_map)
 # print("Tier Map:", tier_map)
 # main.print_schedule([games, practices, slots], 1, 1)
+
+def print_output(eval, schedule):
+    print("Eval-value:", eval)
+
+    for game_index, _ in enumerate(schedule[GAME]):
+        # only need the first slot index, half hour was for collisions
+        game_slot = main.get_slot_string(schedule[GAME][game_index][GAME_TIME][0])
+        print(games_names[game_index], ":", game_slot)
+
+        for prac_index, _ in enumerate(schedule[PRAC][game_index]):
+            prac_slot = main.get_slot_string(schedule[PRAC][game_index][prac_index][0])
+            print(prac_names[game_index][prac_index], ":", prac_slot)
