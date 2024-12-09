@@ -145,12 +145,12 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
     contributions = {}  # Dictionary to store contributions for each event
 
     # Evaluate preference penalties
-    for game_id, game in enumerate(schedule[GAME]):
-        if game[GAME_TIME]:
-            penalty = 0
-            for slot in game[GAME_TIME]:
-                penalty += preference_map.get((game_id, slot), 0)
-            contributions[('game', game_id)] = penalty * weights[1]
+    # for game_id, game in enumerate(schedule[GAME]):
+    #     if game[GAME_TIME]:
+    #         penalty = 0
+    #         for slot in game[GAME_TIME]:
+    #             penalty += preference_map.get((game_id, slot), 0)
+    #         contributions[('game', game_id)] = penalty * weights[1]
 
     # Evaluate pairing penalties
     for event1, event2 in pair_map.items():
