@@ -1,5 +1,6 @@
 import argparse
 import re
+
 import hardConstraints
 import main
 import model
@@ -198,6 +199,7 @@ with open(args.filename, "r") as inputFile:
         if currentHeader == "Practices:":
             # ---------------------- Finish off games -------------------------
             # sorting to correct order and reading in new indices
+            # add a row to practices for open practices
             if not sorted_:
                 # alphabetize the games, keeping relative order to the abstracted games
                 zipped_ = list(zip(games_names, games))
@@ -209,19 +211,27 @@ with open(args.filename, "r") as inputFile:
                 # tier map
                 for name_ in games_names:
                     tables["Games:"][name_] = gameCounter
-                    gameCounter +=1
 
                     # decode the gamecode to enter into tier map
                     game_code = abs(games[gameCounter][GAME_CODE])
                     if game_code > EVENING_CONST:
                         game_code -= EVENING_CONST
-                    tier_map[gameCounter] = game_code
-                    # gameCounter is the INDEX of the game in the games array,
-                    # game_code is the tier and league information. 
+                    if not tier_map[game_code]:
+                        # init to 
+                        tier_map[game_code] = [gameCounter]
+                    else:
+                        tier_map[game_code].append(gameCounter)
+                    # tier_map takes the unique game code and gives a list of games that are part of that
+                    # league/ tier group
 
-            # TODO open practices
+                    gameCounter +=1
+                
+                # append one extra row for missing DIV practices
+                practices.append([])
+                prac_names.append([])
+                # ---------------------- END OF Finish off games -------------------------
+
             for i in range(len(line)):
-                # TODO yikes, we do not need to do that much work
                 # slice throught the string until we have a substring in Games
                 subString = line[:i+1]
                 # print(subString)
@@ -240,13 +250,21 @@ with open(args.filename, "r") as inputFile:
 
             # case where 'DIV' was dropped, every division of this tier gets the practice
             if pracArr[-4] != "DIV":
+                # get the game code for the league/ tier
                 tierStr = pracArr[0] + " " + pracArr[1]
-                for key in tables["Games:"]:
-                    if tierStr in key:  # TODO is this ever true?  the whole game line is in there, not just the tierStr = pracArr[0] + " " + pracArr[1]
-                        # TODO how do we handle this for not DIV?
-                        practices[tables["Games:"][key]].append(())
-                        tables["Practices:"][line] = [
-                            tables["Games:"][key], int(pracArr[-1])]
+                game_code = league_and_tiers.get_number(tierStr)
+
+                # open practices are the last row
+                # negative one should point to last row, exactly what we want
+                # then it will indicate in the code that it is open practice too 
+                practices[-1].append(())
+                new_event_index = [-1, len(practices[-1])-1]
+                tables["Practices:"][line] = new_event_index
+                # index is the last row, and the length of that row minus one
+
+                # use the practice index, and
+                # put the list of games into open_practices
+                hardConstraints.set_open_practice(new_event_index, tier_map[game_code])
 
             # elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
             #     # print(pracArr)
@@ -371,8 +389,6 @@ penalties = [args.gameminPenalty, args.practiceminPenalty,
 
 myModel = model.Model(slots, games, practices, preference_map,
                       pair_map, tier_map, weights, penalties)
-
-
 
 # print(args.gameminPenalty)
 
