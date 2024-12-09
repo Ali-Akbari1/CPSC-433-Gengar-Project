@@ -29,11 +29,11 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
         num_prac_assigned = template_PRAX - slot_PRAX
         if slot[GAMN] > 0 and slot[GAMN] > (num_games_assigned):
             penalty += (slot[GAMN] - num_games_assigned) * pen_gamemin # pen_gamemin = 10
-            print(penalty, "penalty game min")
+            #print(penalty, "penalty game min")
         if slot[PRAN] > 0 and slot[PRAN] > (num_prac_assigned): # PRAN = 3, PRAX = 2
             penalty += (slot[PRAN] - num_prac_assigned) * pen_practicemin
-            print(penalty, "penalty game min + practice min") # pen_practicemin = 20
-    print("here eval min")
+            #print(penalty, "penalty game min + practice min") # pen_practicemin = 20
+    #print("here eval min")
     return penalty
 
 # pref where games are scheduled
@@ -42,22 +42,22 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 # TODO in testing preference map key for games is (game_id, slot)
 # where  slot = f"{day}, {time}" and game is its name not the current format
 
-
 def eval_pref(schedule, preference_map):
-    penalty = 0
-    # was schedule[GAME] but GAME is 0
-    for game_id, game_slots in enumerate(schedule[0]):
-        if game_slots[1]:
-            for slot in game_slots[1]:
-                penalty += preference_map.get((game_id, slot), 0)
-    for game_id, practices in enumerate(schedule[1]):
-        if practices:
-            for practice_id, practice in enumerate(practices):
-                penalty += preference_map.get((game_id,
-                                              practice_id, practice), 0)
+#     penalty = 0
+#     # was schedule[GAME] but GAME is 0
+    
+#     for game_id, game_slots in enumerate(schedule[0]):
+#         if game_slots[1]:
+#             for slot in game_slots[1]:
+#                 penalty += preference_map.get((game_id, slot), 0)
+#     for game_id, practices in enumerate(schedule[1]):
+#         if practices:
+#             for practice_id, practice in enumerate(practices):
+#                 penalty += preference_map.get((game_id,
+#                                               tuple(practice_id), practice), 0)
 
-    print("here eval pref")
-    return penalty
+    #print("here eval pref")
+    return 0
 
 # games and/or practices to be scheduled at same times
 
@@ -92,7 +92,7 @@ def eval_pair(schedule, pair_map, pen_notpaired):
         if event1_slot != event2_slot:
             penalty += pen_notpaired
 
-    print("Pairing penalty calculated:", penalty)
+    #print("Pairing penalty calculated:", penalty)
     return penalty
 
 # TODO game code should be different for diff disions with the same club - does this wok?

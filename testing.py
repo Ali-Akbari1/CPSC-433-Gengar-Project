@@ -217,9 +217,10 @@ with open(args.filename, "r") as inputFile:
                     # gameCounter is the INDEX of the game in the games array,
                     # game_code is the tier and league information. 
                     gameCounter +=1
-
+            print(games_names)
             # TODO open practices
             for i in range(len(line)):
+                
                 # TODO yikes, we do not need to do that much work
                 # slice throught the string until we have a substring in Games
                 subString = line[:i+1]
@@ -233,7 +234,9 @@ with open(args.filename, "r") as inputFile:
                     # add the index of the corresponding game, append an empty tuple
                     
                     # add to tables for easy access later
+                    
                     tables["Practices:"][line] = [associated_game_index, len(practices[associated_game_index])-1]
+                    print(tables["Practices:"][line], "table")
                     break
             pracArr = line.split()
 
@@ -254,8 +257,10 @@ with open(args.filename, "r") as inputFile:
 
         # ####################### Parsing Not Compatible: ########################
         elif currentHeader == "Not compatible:":
+            
             event1, event2 = line.split(", ")
             valid_flag = True
+            print(event1, event2, "Not compatible")
 
             # TODO: failed ali_tests\SmallerInput1
             # are there cases where the games in the "Not Compatible" input are not valid games?
@@ -275,6 +280,7 @@ with open(args.filename, "r") as inputFile:
                 print("Not Compatible: EVENT NOT FOUND: ", event2) # TODO flag? ignore?
                 valid_flag = False
 
+            print(event1_index, event2_index, "index")
             if valid_flag:
                 hardConstraints.set_incompatible(event1_index, event2_index)
 
@@ -373,6 +379,7 @@ main.set_slots(slots)
 main.set_pref_map(preference_map)
 main.set_pair_map(pair_map)
 #initialize it
+
 myModel = model.Model(slots, games, practices, preference_map,
                        pair_map, tier_map, weights, penalties)
 

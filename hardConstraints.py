@@ -198,8 +198,8 @@ def assign_helper_incompatible(event_index, schedule):
     else:
         event = tuple(event_index)
     if event in incompatible:
-        for event in incompatible[event]:
-            if not check_no_overlap(event_index, event, schedule):
+        for event2 in incompatible[event]:
+            if not check_no_overlap(event, event2, schedule):
                 return False
     return True
 
@@ -339,7 +339,11 @@ def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
     if isinstance(event_index2, int):
         slots2 = schedule[GAME][event_index2][GAME_TIME]
     else:
+        print(GAME)
+        print(event_index2)
+        print(schedule)
         slots2 = schedule[PRAC][event_index2[0]][event_index2[1]]
+        #print(slots2)
     # compare slots
     for slot in slots1:
         if slot in slots2:   # O(n) in slot size, but the arrays should be so small that it should not matter
