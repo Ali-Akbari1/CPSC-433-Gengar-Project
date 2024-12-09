@@ -40,19 +40,11 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 
 
 
-# pref where games are scheduled
-# TODO FIX EVAL PREF, I believe is right but schedule does not have any game times assigned to it 
-# games and practices have a certain preference number to be in a time slot
-# go through the preference map check if the game or practice is in the correct slot if not add the penalty to the preference number
-# pref map = [[slotindex, gameindex, preference value]
-#              slotindex2, gameindex2, preference value2...]
+#WORKS ON TEST1.TXT, DOES NOT WORK ON HUDSON MAYBE DUE TO DIV BEING OMIITED?
 def eval_pref(schedule, preference_map):
     penalty = 0
     for pref_entry in preference_map:
         slot_index, event_index, preference_value = pref_entry
-        print(schedule[PRAC])
-        print(schedule[GAME])
-        print(event_index)
 
         if isinstance(slot_index, tuple):
             if slot_index not in schedule[PRAC][event_index]:
@@ -65,71 +57,36 @@ def eval_pref(schedule, preference_map):
     return penalty
     
             
-
-
-
-
-    # --------------- OLD CODE ----------------
-    # print(preference_map)
-    # print(schedule[GAME])
-    # for game_id, game_slots in enumerate(schedule[GAME]):
-    #     print(game_id, game_slots, "game id and sltos")
-    #     if game_slots[0]:
-    #         for slot in game_slots[1]:
-    #             penalty += preference_map.get((game_id, slot), 0)
-    #             print(penalty, "pennalty")
-    # for game_id, practices in enumerate(schedule[PRAC]):
-    #     if practices:
-    #         for practice_id, practice in enumerate(practices):
-    #             penalty += preference_map.get((game_id,
-    #                                           tuple(practice_id), practice), 0)
-
-    # #print("here eval pref")
-    # return 0
-
-
-
-
-
-
-
-# games and/or practices to be scheduled at same times
-# TODO needs testing
+# EVAL PAIR WORKS BUT MODEL SOME TIMES DOES NOT BIAS TO BEING PAIRED
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
+    #print(pair_map)
+    for event1, event2 in pair_map.items():
+        # Determine the type of the first event
+        if isinstance(event1, int):
+            # It's a game
+            event1_slot = schedule[GAME][event1][GAME_TIME]
+        elif isinstance(event1, tuple) and len(event1) == 2:
+            # It's a practice
+            event1_slot = schedule[PRAC][event1[0]][event1[1]]
+        else:
+            raise ValueError(f"Invalid event type for event1: {event1}")
 
-    # for event1, event2 in pair_map.items():
-    #     # Determine the type of the first event
-    #     if isinstance(event1, int):
-    #         # It's a game
-    #         event1_slot = schedule[GAME][event1][GAME_TIME]
-    #     elif isinstance(event1, tuple) and len(event1) == 2:
-    #         # It's a practice
-    #         event1_slot = schedule[PRAC][event1[0]][event1[1]]
-    #     else:
-    #         raise ValueError(f"Invalid event type for event1: {event1}")
+        # Determine the type of the second event
+        if isinstance(event2, int):
+            # It's a game
+            event2_slot = schedule[GAME][event2][GAME_TIME]
+        elif isinstance(event2, tuple) and len(event2) == 2:
+            # It's a practice
+            event2_slot = schedule[PRAC][event2[0]][event2[1]]
+        else:
+            raise ValueError(f"Invalid event type for event2: {event2}")
 
-    #     # Determine the type of the second event
-    #     if isinstance(event2, int):
-    #         # It's a game
-    #         event2_slot = schedule[GAME][event2][GAME_TIME]
-    #     elif isinstance(event2, tuple) and len(event2) == 2:
-    #         # It's a practice
-    #         event2_slot = schedule[PRAC][event2[0]][event2[1]]
-    #     else:
-    #         raise ValueError(f"Invalid event type for event2: {event2}")
-
-    #     # Compare the slots
-    #     if event1_slot != event2_slot:
-    #         penalty += pen_notpaired
-
+        # Compare the slots
+        if event1_slot != event2_slot:
+            penalty += pen_notpaired
 
     return penalty
-
-
-
-
-
 
 
 # TODO game code should be different for diff disions with the same club - does this wok?

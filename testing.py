@@ -79,6 +79,30 @@ with open(args.filename, "r") as inputFile:
                 _ = None
 
             elif (currentHeader == "Practices:"):
+                            # ---------------------- Finish off games -------------------------
+                # sorting to correct order and reading in new indices
+                # add a row to practices for open practices
+                if not sorted_:
+                    # alphabetize the games, keeping relative order to the abstracted games
+                    zipped_ = list(zip(games_names, games))
+                    sorted_ = sorted(zipped_, key=lambda x:x[0])
+
+                    games_names, games = zip(*sorted_)
+
+                    # now the indices will be correct so we can populate the dictionary entries and
+                    # tier map
+                    for name_ in games_names:
+                        tables["Games:"][name_] = gameCounter
+
+
+                        # decode the gamecode to enter into tier map
+                        game_code = abs(games[gameCounter][GAME_CODE])
+                        if game_code > EVENING_CONST:
+                            game_code -= EVENING_CONST
+                        tier_map[gameCounter] = game_code
+                        # gameCounter is the INDEX of the game in the games array,
+                        # game_code is the tier and league information. 
+                        gameCounter += 1
                 tables[currentHeader] = {}
                 _ = None
             else:
@@ -197,31 +221,6 @@ with open(args.filename, "r") as inputFile:
 
         # ####################### Parsing Practices: ########################
         if currentHeader == "Practices:":
-            # ---------------------- Finish off games -------------------------
-            # sorting to correct order and reading in new indices
-            # add a row to practices for open practices
-            if not sorted_:
-                # alphabetize the games, keeping relative order to the abstracted games
-                zipped_ = list(zip(games_names, games))
-                sorted_ = sorted(zipped_, key=lambda x:x[0])
-
-                games_names, games = zip(*sorted_)
-
-                # now the indices will be correct so we can populate the dictionary entries and
-                # tier map
-                for name_ in games_names:
-                    tables["Games:"][name_] = gameCounter
-
-
-                    # decode the gamecode to enter into tier map
-                    game_code = abs(games[gameCounter][GAME_CODE])
-                    if game_code > EVENING_CONST:
-                        game_code -= EVENING_CONST
-                    tier_map[gameCounter] = game_code
-                    # gameCounter is the INDEX of the game in the games array,
-                    # game_code is the tier and league information. 
-                    gameCounter += 1
-
             # TODO open practices
             for i in range(len(line)):
                 # TODO yikes, we do not need to do that much work
@@ -242,7 +241,6 @@ with open(args.filename, "r") as inputFile:
 
                     break
             pracArr = line.split()
-
             # case where 'DIV' was dropped, every division of this tier gets the practice
             if pracArr[-4] != "DIV":
                 # get the game code for the league/ tier
@@ -350,6 +348,7 @@ with open(args.filename, "r") as inputFile:
             valid_flag = True
             # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
             game1, game2 = line.split(", ")
+            print(tables["Games:"])
             if game1 in tables["Games:"]:
                 game1_index = tables["Games:"][game1]
             else:
@@ -360,6 +359,7 @@ with open(args.filename, "r") as inputFile:
                 valid_flag = False
             
             if valid_flag:
+                print("IM HERE")
                 pair_map[game1_index] = game2_index
 
         # # ------------------- Parsing Games (for Tier Map) -------------------
