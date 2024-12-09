@@ -103,8 +103,7 @@ with open(args.filename, "r") as inputFile:
                         
 
                         if int(games_names[gameCounter].split()[1][1:3]) >= 15:
-                            print("I RAN")
-                            hardConstraints.set_upper_level(-1, gameCounter)
+                            hardConstraints.set_upper_level(1, gameCounter)
 
 
                         # gameCounter is the INDEX of the game in the games array,
@@ -362,7 +361,6 @@ with open(args.filename, "r") as inputFile:
             valid_flag = True
             # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
             game1, game2 = line.split(", ")
-            print(tables["Games:"])
             if game1 in tables["Games:"]:
                 game1_index = tables["Games:"][game1]
             else:
@@ -401,7 +399,7 @@ weights = [args.minfilledWeight, args.prefWeight,
 
 penalties = [args.gameminPenalty, args.practiceminPenalty,
              args.notpairedPenalty, args.sectionPenalty]
-             
+
 # ------------------ STAFF MEETING DO NOT ALLOW 11-12:30--------------
 slot_index1 = 32 # TU 11:00
 slot_index2 = 33 # TU 11:30

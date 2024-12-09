@@ -268,14 +268,16 @@ def assign_helper_open_practice(slot_indices, event_index, schedule, DEBUG=False
 
 def assign_helper_upper_level(slot_indices, event_index, schedule, DEBUG=False):
     # no restriction on tutorials
+    if not upper_levels:
+        return True
     if not isinstance(event_index, int):
         return True
     # no potential problem unless event is in upper_level
-    if not event_index in upper_levels[-1]:
+    if not event_index in upper_levels[1]:
         return True
     
     # games are aligned, check first only. Bit of a shortcut but I think it should hold
-    for game_index in upper_levels[-1]: # iterate thorugh indices 
+    for game_index in upper_levels[1]: # iterate thorugh indices 
         if schedule[GAME][game_index][GAME_TIME] and schedule[GAME][game_index][GAME_TIME][0] == slot_indices[0]:
             return False
     
@@ -446,11 +448,6 @@ def set_open_practice(event_index, game_indices, DEBUG=False):
 def set_upper_level(game_id, game_indices, DEBUG=False):
     if isinstance(game_indices, int):
         game_indices = [game_indices]
-
-    if game_id >= 0:
-        if DEBUG: 
-            print("set_upper_level cannot be called on non-upper level game_id:", game_id)
-        return False
 
     if game_id not in upper_levels:
 

@@ -40,13 +40,16 @@ def eval_pref(schedule, preference_map):
     for pref_entry in preference_map:
         slot_index, event_index, preference_value = pref_entry
 
-        if isinstance(slot_index, tuple):
-            if slot_index not in schedule[PRAC][event_index]:
+        if isinstance(event_index, int):
+            if slot_index not in schedule[GAME][event_index][GAME_TIME]:
+            # Add the penalty if the game is not in the preferred slot
+                penalty += int(preference_value)
+
+        else:
+            if slot_index not in schedule[PRAC][event_index[0]][event_index[1]]:
                 penalty += int(preference_value)
         # Check if the game is scheduled in the preferred slot
-        elif slot_index not in schedule[GAME][event_index][GAME_TIME]:
-            # Add the penalty if the game is not in the preferred slot
-            penalty += int(preference_value)
+        
 
     return penalty
     
