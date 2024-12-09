@@ -38,32 +38,39 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 
 # pref where games are scheduled
 
-# TODO practices are not put into the prefernece map so i am guessing key structure
-# TODO in testing preference map key for games is (game_id, slot)
-# where  slot = f"{day}, {time}" and game is its name not the current format
+# TODO FIX EVAL PREF
 
+
+# pref map = [slotindex, game
 def eval_pref(schedule, preference_map):
-#     penalty = 0
-#     # was schedule[GAME] but GAME is 0
-    
-#     for game_id, game_slots in enumerate(schedule[0]):
-#         if game_slots[1]:
-#             for slot in game_slots[1]:
-#                 penalty += preference_map.get((game_id, slot), 0)
-#     for game_id, practices in enumerate(schedule[1]):
-#         if practices:
-#             for practice_id, practice in enumerate(practices):
-#                 penalty += preference_map.get((game_id,
-#                                               tuple(practice_id), practice), 0)
+    penalty = 0
+    for game_id, game_slots in enumerate(schedule[SLOT]):
 
-    #print("here eval pref")
-    return 0
+
+
+
+
+
+    # print(preference_map)
+    # print(schedule[GAME])
+    # for game_id, game_slots in enumerate(schedule[GAME]):
+    #     print(game_id, game_slots, "game id and sltos")
+    #     if game_slots[0]:
+    #         for slot in game_slots[1]:
+    #             penalty += preference_map.get((game_id, slot), 0)
+    #             print(penalty, "pennalty")
+    # for game_id, practices in enumerate(schedule[PRAC]):
+    #     if practices:
+    #         for practice_id, practice in enumerate(practices):
+    #             penalty += preference_map.get((game_id,
+    #                                           tuple(practice_id), practice), 0)
+
+    # #print("here eval pref")
+    # return 0
 
 # games and/or practices to be scheduled at same times
 
 # TODO needs testing
-
-
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
 

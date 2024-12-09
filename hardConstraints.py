@@ -339,9 +339,9 @@ def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
     if isinstance(event_index2, int):
         slots2 = schedule[GAME][event_index2][GAME_TIME]
     else:
-        print(GAME)
-        print(event_index2)
-        print(schedule)
+        # print(GAME)
+        # print(event_index2)
+        # print(schedule)
         slots2 = schedule[PRAC][event_index2[0]][event_index2[1]]
         #print(slots2)
     # compare slots
