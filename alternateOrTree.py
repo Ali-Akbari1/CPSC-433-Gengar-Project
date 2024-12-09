@@ -138,6 +138,7 @@ class OrTreeNode:
         games, practices, slots = self.pr
 
         for ps in possible_slots:
+            
             # Copy the pr
             new_slots = [list(s)[:] for s in slots]
             
@@ -147,6 +148,7 @@ class OrTreeNode:
 
             new_pr = (new_games, new_practices, new_slots)
             if assign(next_event, ps, new_pr):
+            
                 child = OrTreeNode(
                     new_pr, "?",
                     A=self.A, B=self.B,
@@ -164,6 +166,7 @@ class OrTreeNode:
                 pass
 
         self.children =  children
+        
         return children
 
     def orTreeCrossover(self, A, B, pr):

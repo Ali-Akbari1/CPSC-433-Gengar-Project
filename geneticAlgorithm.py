@@ -62,12 +62,19 @@ def find_possible_slots(event_index, schedule):
             if day == 0:
                 # Monday
                 for start_slot in range(day, day + SLOTS_PER_DAY, 2):
+                    
                     slots_indices = [start_slot, start_slot + 1]
                     if slots_indices == current_assignment:
                         continue
-                    if assign(event_index, slots_indices, schedule):
-                        possible_slots.append(slots_indices)
-                        unassign(event_index, schedule)  # Rollback
+                    if game_id == 2 and start_slot == 0:
+                        if assign(event_index, slots_indices, schedule, DEBUG=True):
+                            possible_slots.append(slots_indices)
+                            unassign(event_index, schedule)  # Rollback
+                    else:
+                        
+                        if assign(event_index, slots_indices, schedule):
+                            possible_slots.append(slots_indices)
+                            unassign(event_index, schedule)  # Rollback
             else:
                 # Tuesday
                 for start_slot in range(day, day + SLOTS_PER_DAY - 2, 3):
@@ -174,5 +181,5 @@ def find_possible_slots(event_index, schedule):
 
     else:
         raise ValueError("Invalid event_index in find_possible_slots")
-
+    
     return possible_slots

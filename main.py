@@ -200,9 +200,8 @@ def set_pref_map(map_in):
     pref_map_from_testing = deepcopy(map_in)
 
 tier_map_from_testing = {}
-def set_tier_map(map_in): 
+def set_tier_map(map_in):
     tier_map_from_testing = deepcopy(map_in)
-
 
 pair_map_from_testing = {}
 def set_pair_map(map_in):
