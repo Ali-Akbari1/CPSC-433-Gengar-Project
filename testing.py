@@ -100,6 +100,13 @@ with open(args.filename, "r") as inputFile:
                         if game_code > EVENING_CONST:
                             game_code -= EVENING_CONST
                         tier_map[gameCounter] = game_code
+                        
+
+                        if int(games_names[gameCounter].split()[1][1:3]) >= 15:
+                            print("I RAN")
+                            hardConstraints.set_upper_level(-1, gameCounter)
+
+
                         # gameCounter is the INDEX of the game in the games array,
                         # game_code is the tier and league information. 
                         gameCounter += 1
@@ -191,16 +198,16 @@ with open(args.filename, "r") as inputFile:
             league_and_tier = lineCopy[0] + " " + lineCopy[1]
             game_id = league_and_tiers.get_number(league_and_tier)
             # Day games for under 16 have identifier: 0 < game_id < EVENING_CONST
-            if (age < 16) and (division < 9):
+            if (age < 15) and (division < 9):
                 games.append([game_id, ()])
             # Evening games for under 16 have identifier: EVENING_CONST < game_id
-            elif (age < 16) and (division >= 9):
+            elif (age < 15) and (division >= 9):
                 games.append([game_id+main.EVENING_CONST, ()])
             # Day games for over 16 have identifier: -EVENING_CONST < game_id < 0
-            elif (age >= 16) and (division < 9):
+            elif (age >= 15) and (division < 9):
                 games.append([-game_id, ()])
             # Day games for over 16 have identifier: game_id < -EVENING_CONST
-            elif (age >= 16) and (division >= 9):
+            elif (age >= 15) and (division >= 9):
                 games.append([-game_id-main.EVENING_CONST, ()])
 
             # make a practice row for game, these are unnamed until pratices are read in. 
@@ -394,6 +401,14 @@ weights = [args.minfilledWeight, args.prefWeight,
 
 penalties = [args.gameminPenalty, args.practiceminPenalty,
              args.notpairedPenalty, args.sectionPenalty]
+             
+# ------------------ STAFF MEETING DO NOT ALLOW 11-12:30--------------
+slot_index1 = 32 # TU 11:00
+slot_index2 = 33 # TU 11:30
+slot_index3 = 34 # TU 12:00
+slots[slot_index1][GAMX] = 0  # Set the game max value to 0
+slots[slot_index2][GAMX] = 0  # Set the game max value to 0
+slots[slot_index3][GAMX] = 0  # Set the game max value to 0
 
 #print(slots)
 main.set_slots(slots)
