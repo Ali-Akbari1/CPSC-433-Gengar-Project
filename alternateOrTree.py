@@ -42,14 +42,17 @@ class OrTreeNode:
     def isComplete(self):
         # Check if there is no {?} remain in games or practices
         games, practices, slots = self.pr
+        print(games, 'games')
         for g in games:
             if g[GAME_TIME] == ():
                  return False
+        print(practices, 'practices')
         for gpr in practices:
             for p in gpr:
 
                 if p == ():
                      return False
+    
         return True
 
     # might make the model more constrained towards one solution but we need something that works
@@ -95,7 +98,7 @@ class OrTreeNode:
         #     return 0
         # 2. 0 if no '?' remain (complete solution)
 
-        if self.isComplete( ):
+        if self.isComplete():
             return 0
 
         # 3. 1 if A and B are set and the next event is in both A and B
@@ -116,6 +119,7 @@ class OrTreeNode:
 
         # 2. (pr, ?) -> (pr, yes) if no '?' remain
         if self.isComplete():
+            print()
             self.sol = "yes"
             self.children = []
             return []
@@ -284,7 +288,8 @@ class OrTreeNode:
             return None
         if self.sol == "yes":
             # return this solution
-             return self.pr
+            print("IRANNNNNNNN")
+            return self.pr
 
         if depth > max_depth:
              return None
