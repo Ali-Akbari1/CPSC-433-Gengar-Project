@@ -461,8 +461,7 @@ def set_incompatible(event_index1, event_index2):
 # adds game indices to the set in open_practices[event_index]
 def set_open_practice(event_index, game_indices, DEBUG=False):
     if isinstance(event_index, int):
-        if DEBUG:
-            print("Failed: set_open_practice only works for practices. ")
+        print("Failed: set_open_practice only works for practices. ")
         return False
     if isinstance(game_indices, int):
         game_indices = [game_indices]
