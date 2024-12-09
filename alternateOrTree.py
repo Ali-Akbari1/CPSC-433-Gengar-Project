@@ -42,17 +42,16 @@ class OrTreeNode:
     def isComplete(self):
         # Check if there is no {?} remain in games or practices
         games, practices, slots = self.pr
-        print(games, 'games')
+
         for g in games:
             if g[GAME_TIME] == ():
                  return False
-        print(practices, 'practices')
+
         for gpr in practices:
             for p in gpr:
 
                 if p == ():
                      return False
-    
         return True
 
     # might make the model more constrained towards one solution but we need something that works
@@ -119,7 +118,7 @@ class OrTreeNode:
 
         # 2. (pr, ?) -> (pr, yes) if no '?' remain
         if self.isComplete():
-            print()
+
             self.sol = "yes"
             self.children = []
             return []
@@ -282,21 +281,27 @@ class OrTreeNode:
     def search(self, max_depth=1000, depth=0):
         # Perform a backtracking Or-tree search defined;
         # Evaluate this node
-        val = self.fleaf()
-        if self.sol == "no":
 
+        if self.sol == "no":
             return None
+        
         if self.sol == "yes":
             # return this solution
-            print("IRANNNNNNNN")
             return self.pr
 
         if depth > max_depth:
              return None
 
-        # Not complete, expand
+         # Not complete, expand
         children = self.ftrans()
+        
+        # **New Check After ftrans**
+        if self.sol == "yes":
+
+            return self.pr
+
         if not children:
+
             return None
 
         # Sort children by fleaf value
