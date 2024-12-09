@@ -3,7 +3,7 @@ import main as m
 from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
     GAME, GAME_CODE, GAME_TIME, \
     PRAC, \
-    GAMX, GAMN, PRAX, PRAN, SLOT, EVENING_CONST
+    GAMX, GAMN, PRAX, PRAN, SLOT, EVENING_CONST, pref_map_from_testing, tier_map_from_testing, pair_map_from_testing, slots_from_testing
 
 
 
@@ -11,16 +11,26 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 # game min and practice min is less than amount of games/practices assigned
 def eval_min(schedule, pen_gamemin, pen_practicemin):
     penalty = 0
-    for slot in schedule[2]:  # was for slot in schedule[SLOT] but SLOT is equal to 2
-        # print(slot)
-        if slot[GAMN] > 0 and slot[GAMX] < slot[GAMN]:
-            penalty += (slot[GAMN] - slot[GAMX]) * pen_gamemin
-
-        if slot[PRAN] > 0 and slot[PRAX] < slot[PRAN]:
-            penalty += (slot[PRAN] - slot[PRAX]) * pen_practicemin
-
+    # CHANGE IMPORT ONCE CIRCULAR IMPORT ERROR 
+    # for now circular import error
+    for slot_index, slot in enumerate(schedule[SLOT]):  
+        #print(slot)
+        #print(schedule[SLOT])
+        slot_max = slot[GAMX]
+        #print(slot_max)
+        #print(slots_from_testing)
+        template_max = slots_from_testing[slot_index][GAMX]
+        num_games_assigned = template_max - slot_max
+        template_PRAX = slots_from_testing[slot_index][PRAX]
+        slot_PRAX = slot[PRAX]
+        num_prac_assigned = template_PRAX - slot_PRAX
+        if slot[GAMN] > 0 and slot[GAMN] > (num_games_assigned):
+            penalty += (slot[GAMN] - num_games_assigned) * pen_gamemin # pen_gamemin = 10
+        if slot[PRAN] > 0 and slot[PRAN] > (num_prac_assigned): # PRAN = 3, PRAX = 2
+            penalty += (slot[PRAN] - num_prac_assigned) * pen_practicemin
+            #print(penalty, "penalty game min + practice min") # pen_practicemin = 20
+    #print("here eval min")
     return penalty
-
 
 
 
@@ -32,25 +42,23 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 # pref map = [[slotindex, gameindex, preference value]
 #              slotindex2, gameindex2, preference value2...]
 def eval_pref(schedule, preference_map):
-
-
     # ------------- CODE I BELIEVE IS ALMOST RIGHT---------------
-    # penalty = 0
-    # for pref_entry in preference_map:
-    #     slot_index, event_index, preference_value = pref_entry
-    #     print(schedule[PRAC])
-    #     print(schedule[GAME])
-    #     print(event_index)
+    penalty = 0
+    for pref_entry in preference_map:
+        slot_index, event_index, preference_value = pref_entry
+        print(schedule[PRAC])
+        print(schedule[GAME])
+        print(event_index)
 
-    #     if isinstance(slot_index, tuple):
-    #         if slot_index not in schedule[PRAC][event_index]:
-    #             penalty += int(preference_value)
-    #     # Check if the game is scheduled in the preferred slot
-    #     elif slot_index not in schedule[GAME][event_index][GAME_TIME]:
-    #         # Add the penalty if the game is not in the preferred slot
-    #         penalty += int(preference_value)
+        if isinstance(slot_index, tuple):
+            if slot_index not in schedule[PRAC][event_index]:
+                penalty += int(preference_value)
+        # Check if the game is scheduled in the preferred slot
+        elif slot_index not in schedule[GAME][event_index][GAME_TIME]:
+            # Add the penalty if the game is not in the preferred slot
+            penalty += int(preference_value)
 
-    return 0
+    return penalty
     
             
 
@@ -130,10 +138,10 @@ def eval_pair(schedule, pair_map, pen_notpaired):
 # game_code is the same for each 
 def eval_secdiff(schedule, pen_section):
     penalty = 0
-    game_code = abs(games[gameCounter][GAME_CODE])
-    if game_code > EVENING_CONST:
-        game_code -= EVENING_CONST
-    print(game_code, "game code")
+    # game_code = abs(games[gameCounter][GAME_CODE])
+    # if game_code > EVENING_CONST:
+    #     game_code -= EVENING_CONST
+    # print(game_code, "game code")
 
     return penalty
 
@@ -167,80 +175,80 @@ def eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map):
 def eval_penalty_contributions(schedule, weights, penalties, preference_map, pair_map, tier_map):
     contributions = {}  # Dictionary to store contributions for each event
 
-    # Evaluate preference penalties
-    for pref_entry in preference_map:
-        slot_index, event_index, preference_value = pref_entry
-        penalty = 0
+    # # Evaluate preference penalties
+    # for pref_entry in preference_map:
+    #     slot_index, event_index, preference_value = pref_entry
+    #     penalty = 0
 
-        # Check if the event is a game or practice
-        if isinstance(slot_index, tuple):
-            # It's a practice
-            if slot_index not in schedule[PRAC][event_index]:
-                penalty += int(preference_value)
-        else:
-            # It's a game
-            if slot_index not in schedule[GAME][event_index][GAME_TIME]:
-                penalty += int(preference_value)
+    #     # Check if the event is a game or practice
+    #     if isinstance(slot_index, tuple):
+    #         # It's a practice
+    #         if slot_index not in schedule[PRAC][event_index]:
+    #             penalty += int(preference_value)
+    #     else:
+    #         # It's a game
+    #         if slot_index not in schedule[GAME][event_index][GAME_TIME]:
+    #             penalty += int(preference_value)
 
-        contributions[('event', event_index)] = contributions.get(('event', event_index), 0) + penalty * weights[1]
+    #     contributions[('event', event_index)] = contributions.get(('event', event_index), 0) + penalty * weights[1]
 
-    # Evaluate pairing penalties
-    for event1, event2 in pair_map.items():
-        # Determine slots for both events
-        if isinstance(event1, int):
-            event1_slot = schedule[GAME][event1][GAME_TIME]
-        else:  # event1 is a practice
-            event1_slot = schedule[PRAC][event1[0]][event1[1]]
+    # # Evaluate pairing penalties
+    # for event1, event2 in pair_map.items():
+    #     # Determine slots for both events
+    #     if isinstance(event1, int):
+    #         event1_slot = schedule[GAME][event1][GAME_TIME]
+    #     else:  # event1 is a practice
+    #         event1_slot = schedule[PRAC][event1[0]][event1[1]]
 
-        if isinstance(event2, int):
-            event2_slot = schedule[GAME][event2][GAME_TIME]
-        else:  # event2 is a practice
-            event2_slot = schedule[PRAC][event2[0]][event2[1]]
+    #     if isinstance(event2, int):
+    #         event2_slot = schedule[GAME][event2][GAME_TIME]
+    #     else:  # event2 is a practice
+    #         event2_slot = schedule[PRAC][event2[0]][event2[1]]
 
-        # Add penalty if events are not paired in the same slot
-        if event1_slot != event2_slot:
-            penalty = penalties[2] * weights[2]
-            contributions[('event', event1)] = contributions.get(('event', event1), 0) + penalty / 2
-            contributions[('event', event2)] = contributions.get(('event', event2), 0) + penalty / 2
+    #     # Add penalty if events are not paired in the same slot
+    #     if event1_slot != event2_slot:
+    #         penalty = penalties[2] * weights[2]
+    #         contributions[('event', event1)] = contributions.get(('event', event1), 0) + penalty / 2
+    #         contributions[('event', event2)] = contributions.get(('event', event2), 0) + penalty / 2
 
-    # Evaluate section difference penalties
-    for slot_index, slot in enumerate(schedule[SLOT]):
-        game_ids_in_slot = [
-            game_id for game_id, game in enumerate(schedule[GAME]) if slot_index in game[GAME_TIME]
-        ]
-        for i in range(len(game_ids_in_slot)):
-            for j in range(i + 1, len(game_ids_in_slot)):
-                game1 = game_ids_in_slot[i]
-                game2 = game_ids_in_slot[j]
-                league1 = abs(schedule[GAME][game1][GAME_CODE])
-                league2 = abs(schedule[GAME][game2][GAME_CODE])
+    # # Evaluate section difference penalties
+    # for slot_index, slot in enumerate(schedule[SLOT]):
+    #     game_ids_in_slot = [
+    #         game_id for game_id, game in enumerate(schedule[GAME]) if slot_index in game[GAME_TIME]
+    #     ]
+    #     for i in range(len(game_ids_in_slot)):
+    #         for j in range(i + 1, len(game_ids_in_slot)):
+    #             game1 = game_ids_in_slot[i]
+    #             game2 = game_ids_in_slot[j]
+    #             league1 = abs(schedule[GAME][game1][GAME_CODE])
+    #             league2 = abs(schedule[GAME][game2][GAME_CODE])
 
-                # Check if they are in the same tier/age group but different divisions
-                if league1 == league2:
-                    penalty = penalties[3] * weights[3]
-                    contributions[('game', game1)] = contributions.get(('game', game1), 0) + penalty / 2
-                    contributions[('game', game2)] = contributions.get(('game', game2), 0) + penalty / 2
+    #             # Check if they are in the same tier/age group but different divisions
+    #             if league1 == league2:
+    #                 penalty = penalties[3] * weights[3]
+    #                 contributions[('game', game1)] = contributions.get(('game', game1), 0) + penalty / 2
+    #                 contributions[('game', game2)] = contributions.get(('game', game2), 0) + penalty / 2
 
-    # Evaluate minimum fill penalties
-    for slot_index, slot in enumerate(schedule[SLOT]):
-        if slot[GAMN] > 0 and slot[GAMX] < slot[GAMN]:
-            penalty = (slot[GAMN] - slot[GAMX]) * penalties[0] * weights[0]
-            assigned_games = [
-                game_id for game_id, game in enumerate(schedule[GAME]) if slot_index in game[GAME_TIME]
-            ]
-            for game_id in assigned_games:
-                contributions[('game', game_id)] = contributions.get(('game', game_id), 0) + penalty / len(assigned_games)
+    # # Evaluate minimum fill penalties
+    # for slot_index, slot in enumerate(schedule[SLOT]):
+    #     if slot[GAMN] > 0 and slot[GAMX] < slot[GAMN]:
+    #         penalty = (slot[GAMN] - slot[GAMX]) * penalties[0] * weights[0]
+    #         assigned_games = [
+    #             game_id for game_id, game in enumerate(schedule[GAME]) if slot_index in game[GAME_TIME]
+    #         ]
+    #         for game_id in assigned_games:
+    #             contributions[('game', game_id)] = contributions.get(('game', game_id), 0) + penalty / len(assigned_games)
 
-        if slot[PRAN] > 0 and slot[PRAX] < slot[PRAN]:
-            penalty = (slot[PRAN] - slot[PRAX]) * penalties[1] * weights[0]
-            assigned_practices = [
-                (game_id, prac_id) for game_id, practices in enumerate(schedule[PRAC])
-                for prac_id, practice in enumerate(practices) if slot_index in practice
-            ]
-            for game_id, prac_id in assigned_practices:
-                contributions[('practice', game_id, prac_id)] = contributions.get(
-                    ('practice', game_id, prac_id), 0
-                ) + penalty / len(assigned_practices)
+    #     if slot[PRAN] > 0 and slot[PRAX] < slot[PRAN]:
+    #         penalty = (slot[PRAN] - slot[PRAX]) * penalties[1] * weights[0]
+    #         assigned_practices = [
+    #             (game_id, prac_id) for game_id, practices in enumerate(schedule[PRAC])
+    #             for prac_id, practice in enumerate(practices) if slot_index in practice
+    #         ]
+    #         for game_id, prac_id in assigned_practices:
+    #             contributions[('practice', game_id, prac_id)] = contributions.get(
+    #                 ('practice', game_id, prac_id), 0
+    #             ) + penalty / len(assigned_practices)
 
     return contributions
 

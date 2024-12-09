@@ -42,7 +42,7 @@ prac_names = []  # practice array [["s", "s", "s"], ["s", "s", "s"], ...]
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
 
-    preference_map = {}
+    preference_map = []
     pair_map = {}
     tier_map = {}
     tables = {}  # Using a dictionary, key: headers, values: rows
@@ -334,14 +334,14 @@ with open(args.filename, "r") as inputFile:
         elif currentHeader == "Preferences:":
             # # TODO practice preferences (this is not working with our good hard contraints yet)
             # # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
-            # pref_parts = line.split(", ")
-            # day, time, event, prefValue = pref_parts
-            # slot_index = main.get_slot_index(day, time)
+            pref_parts = line.split(", ")
+            day, time, event, prefValue = pref_parts
+            slot_index = main.get_slot_index(day, time)
 
-            # if event in tables["Games:"]:
-            #     preference_map.append([slot_index, tables["Games:"][event], prefValue])
-            # elif event in tables["Practices:"]:
-            #     preference_map.append([slot_index, tables["Practices:"][event], prefValue])
+            if event in tables["Games:"]:
+                preference_map.append([slot_index, tables["Games:"][event], prefValue])
+            elif event in tables["Practices:"]:
+                preference_map.append([slot_index, tables["Practices:"][event], prefValue])
             continue
 
         # ------------------- Parsing Pair -------------------
