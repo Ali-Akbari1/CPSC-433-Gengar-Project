@@ -38,13 +38,13 @@ def get_associated_game(prac): # TODO not working for no DIV practices
 
 games_names = []  # games array ["CSMA U16...", "CUSA U12...", ...]
 prac_names = []  # practice array [["s", "s", "s"], ["s", "s", "s"], ...]
+tier_map = {}
 
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
 
     preference_map = []
     pair_map = {}
-    tier_map = {}
     tables = {}  # Using a dictionary, key: headers, values: rows
     
     sorted_ = None
@@ -100,6 +100,7 @@ with open(args.filename, "r") as inputFile:
                         if game_code > EVENING_CONST:
                             game_code -= EVENING_CONST
                         tier_map[gameCounter] = game_code
+                        print(tier_map)
                         # gameCounter is the INDEX of the game in the games array,
                         # game_code is the tier and league information. 
                         gameCounter += 1
@@ -359,7 +360,6 @@ with open(args.filename, "r") as inputFile:
                 valid_flag = False
             
             if valid_flag:
-                print("IM HERE")
                 pair_map[game1_index] = game2_index
 
         # # ------------------- Parsing Games (for Tier Map) -------------------
@@ -393,6 +393,7 @@ penalties = [args.gameminPenalty, args.practiceminPenalty,
 main.set_slots(slots)
 main.set_pref_map(preference_map)
 main.set_pair_map(pair_map)
+main.set_tier_map(tier_map)
 #initialize it
 
 myModel = model.Model(slots, games, practices, preference_map,

@@ -6,8 +6,6 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
     GAMX, GAMN, PRAX, PRAN, SLOT, EVENING_CONST, pref_map_from_testing, tier_map_from_testing, pair_map_from_testing, slots_from_testing
 
 
-
-
 # game min and practice min is less than amount of games/practices assigned
 def eval_min(schedule, pen_gamemin, pen_practicemin):
     penalty = 0
@@ -89,24 +87,25 @@ def eval_pair(schedule, pair_map, pen_notpaired):
     return penalty
 
 
-# TODO game code should be different for diff disions with the same club - does this wok?
+
 # TODO fix eval_secdiff
 # No more tier map
-# game_code = abs(games[gameCounter][GAME_CODE])
-# if game_code > EVENING_CONST:
-#     game_code -= EVENING_CONST
 # if two teams in different divisions and same tier and age 
-# game_code is the same for each 
+# TIER MAP NOT WORKING
 def eval_secdiff(schedule, pen_section):
-    penalty = 0
-    # game_code = abs(games[gameCounter][GAME_CODE])
-    # if game_code > EVENING_CONST:
-    #     game_code -= EVENING_CONST
-    # print(game_code, "game code")
+    # penalty = 0
+    # current_game_code = 0
+    # for game in schedule[GAME]:
+
+    # for code, games in tier_map_from_testing:
+    #     print("IM HERE")
+    #     set(games[0])
+    #     for game in games:
+    #         print(game)
+    #         print(games)
+
 
     return penalty
-
-
 
 
 
@@ -122,14 +121,8 @@ def eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map):
                     penalties[2]) * weights[2]
         + eval_secdiff(schedule,
                        # if two teams in the same tier
-                       penalties[3]) * weights[3]
+                       penalties[3], tier_map) * weights[3]
     )
-
-
-
-
-
-
 
 
 
