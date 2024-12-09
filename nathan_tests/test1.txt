@@ -2,22 +2,15 @@ Name:
 3 game, 3 practice, just enough slots to fill. No other constraints
 
 Game slots:
-MO, 8:00, 1, 1
-MO, 9:00, 1, 1
-TU, 9:30, 1, 1
+MO, 9:00, 3, 1
 
-TU, 11:00, 1, 1
-MO, 11:00, 1, 1
-TU, 12:30, 1, 1
 
 Practice slots:
 MO, 8:00,  1, 1
 TU, 10:00,  1, 1
 FR, 10:00, 1, 1
 
-MO, 13:00,  1, 1
-TU, 14:00,  1, 1
-MO, 10:00, 1, 1
+
 
 
 Games:
@@ -25,24 +18,17 @@ CMSA U13T3 DIV 01
 CMSA U13T3 DIV 02
 CMSA U13T3 DIV 03
 
-CMSA U13T4 DIV 01
-CMSA U13T4 DIV 02
-CMSA U13T4 DIV 03
-
-
 
 Practices:
 CMSA U13T3 DIV 01 PRC 01
 CMSA U13T3 DIV 01 PRC 02
 CMSA U13T3 DIV 01 PRC 03
 
-CMSA U13T4 DIV 01 PRC 01
-CMSA U13T4 DIV 01 PRC 02
-CMSA U13T4 DIV 01 PRC 03
 
 Not compatible:
 
 Unwanted:
+
 
 Preferences:
 

@@ -81,19 +81,7 @@ def eval_pair(schedule, pair_map, pen_notpaired):
 
 
 def eval_secdiff(schedule, tier_map, pen_section):
-    penalty = 0
-    for slot_index, slot in enumerate(schedule[2]):
-        # List of leagues in the current slot
-        leagues_in_slot = [
-            game[GAME_CODE] for game in schedule[0] if slot_index in game[GAME_TIME]
-        ]
-
-        for league1 in leagues_in_slot:
-            for league2 in leagues_in_slot:
-                if league1 != league2 and tier_map[league1] == tier_map[league2]:
-                    # print("here")
-                    penalty += pen_section
-    return penalty
+    return 0
 
 
 # evaluate all penalties

@@ -47,11 +47,11 @@ def assign(event_index, slots_indices, schedule, set=True, DEBUG=False):
         if(DEBUG):
             print("Assignment failed: alignment. ")
         return False
-    if not assign_helper_unwanted(event_index, schedule):
+    if not assign_helper_unwanted(event_index, slots_indices):
         if DEBUG:
             print("Assignment failed: unwanted. ")
         return False
-    if not assign_helper_incompatible(event_index, schedule):
+    if not assign_helper_incompatible(event_index, schedule, slots_indices):
         if DEBUG:
             print("Assignment failed: incompatible. ")
         return False
@@ -173,7 +173,7 @@ def assign_helper_alignment(slot_indices, event_index, DEBUG=False):
     
     return True
 
-def assign_helper_unwanted(event_index, schedule):
+def assign_helper_unwanted(event_index, slots1):
     if isinstance(event_index, int):
         event = event_index
     else:
@@ -182,24 +182,25 @@ def assign_helper_unwanted(event_index, schedule):
         unwanted_slots = unwanted[event]
         # game
         if isinstance(event_index, int):
-            for slot in schedule[GAME][event_index][GAME_TIME]:
+            for slot in slots1:
                 if slot in unwanted_slots:
                     return False
         # practice
         else: 
-            for slot in schedule[PRAC][event_index[0]][event_index[1]]:
+            for slot in slots1:
                 if slot in unwanted_slots:
                     return False
     return True
 
-def assign_helper_incompatible(event_index, schedule):
+def assign_helper_incompatible(event_index, schedule, slots):
     if isinstance(event_index, int):
         event = event_index
     else:
         event = tuple(event_index)
     if event in incompatible:
         for event2 in incompatible[event]:
-            if not check_no_overlap(event, event2, schedule):
+            if not check_no_overlap(slots, event2, schedule):
+
                 return False
     return True
 
@@ -327,21 +328,14 @@ def check_all_maxes_non_negative(schedule):
             return False
 
 # used by incompatible
-def check_no_overlap(event_index1, event_index2, schedule, DEBUG=False):
-    slots1 = ()
+def check_no_overlap(slots1, event_index2, schedule, DEBUG=False):
     slots2 = ()
-    # get first set of slots
-    if isinstance(event_index1, int):
-        slots1 = schedule[GAME][event_index1][GAME_TIME]
-    else:
-        slots1 = schedule[PRAC][event_index1[0]][event_index1[1]]
+
     # get second set of slots
     if isinstance(event_index2, int):
         slots2 = schedule[GAME][event_index2][GAME_TIME]
     else:
-        print(GAME)
-        print(event_index2)
-        print(schedule)
+    
         slots2 = schedule[PRAC][event_index2[0]][event_index2[1]]
         #print(slots2)
     # compare slots
