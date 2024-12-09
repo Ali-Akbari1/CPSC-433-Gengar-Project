@@ -26,22 +26,60 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 
 # pref where games are scheduled
 
-# TODO practices are not put into the prefernece map so i am guessing key structure
-# TODO in testing preference map key for games is (game_id, slot)
-# where  slot = f"{day}, {time}" and game is its name not the current format
-
+# TODO FIX EVAL PREF, I believe is right but schedule does not have any game times assigned to it 
+# games and practices have a certain preference number to be in a time slot
+# go through the preference map check if the game or practice is in the correct slot if not add the penalty to the preference number
+# pref map = [[slotindex, gameindex, preference value]
+#              slotindex2, gameindex2, preference value2...]
 def eval_pref(schedule, preference_map):
 
 
-    #print("here eval pref")
+    # ------------- CODE I BELIEVE IS ALMOST RIGHT
+    # penalty = 0
+    # for pref_entry in preference_map:
+    #     slot_index, event_index, preference_value = pref_entry
+    #     print(schedule[PRAC])
+    #     print(schedule[GAME])
+    #     print(event_index)
+
+    #     if isinstance(slot_index, tuple):
+    #         if slot_index not in schedule[PRAC][event_index]:
+    #             penalty += int(preference_value)
+    #     # Check if the game is scheduled in the preferred slot
+    #     elif slot_index not in schedule[GAME][event_index][GAME_TIME]:
+    #         # Add the penalty if the game is not in the preferred slot
+    #         penalty += int(preference_value)
+
+    # return penalty
     return 0
+            
 
-# pref map = [slotindex, game
-def eval_pref(schedule, preference_map):
-    penalty = 0
-    for game_id, game_slots in enumerate(schedule[SLOT]):
-        return 0
 
+
+
+    # --------------- OLD CODE ----------------
+    # print(preference_map)
+    # print(schedule[GAME])
+    # for game_id, game_slots in enumerate(schedule[GAME]):
+    #     print(game_id, game_slots, "game id and sltos")
+    #     if game_slots[0]:
+    #         for slot in game_slots[1]:
+    #             penalty += preference_map.get((game_id, slot), 0)
+    #             print(penalty, "pennalty")
+    # for game_id, practices in enumerate(schedule[PRAC]):
+    #     if practices:
+    #         for practice_id, practice in enumerate(practices):
+    #             penalty += preference_map.get((game_id,
+    #                                           tuple(practice_id), practice), 0)
+
+    # #print("here eval pref")
+    # return 0
+
+
+
+
+
+# games and/or practices to be scheduled at same times
 # TODO needs testing
 
 
@@ -77,9 +115,11 @@ def eval_pair(schedule, pair_map, pen_notpaired):
     return penalty
 
 # TODO game code should be different for diff disions with the same club - does this wok?
+# TODO fix eval_secdiff
+
+# No more tier map
+
 # if two teams in the same tier
-
-
 def eval_secdiff(schedule, tier_map, pen_section):
     return 0
 

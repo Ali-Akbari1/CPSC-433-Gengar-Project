@@ -42,7 +42,7 @@ prac_names = []  # practice array [["s", "s", "s"], ["s", "s", "s"], ...]
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
 
-    preference_map = {}
+    preference_map = []
     pair_map = {}
     tier_map = {}
     tables = {}  # Using a dictionary, key: headers, values: rows
@@ -335,10 +335,13 @@ with open(args.filename, "r") as inputFile:
             # TODO practice preferences
             # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
             pref_parts = line.split(", ")
-            day, time, game, weight = pref_parts
-            slot = f"{day}, {time}"
-            # TODO raw game and slot? Does it work with invalid events?
-            preference_map[(game, slot)] = int(weight)
+            day, time, event, prefValue = pref_parts
+            slot_index = main.get_slot_index(day, time)
+
+            if event in tables["Games:"]:
+                preference_map.append([slot_index, tables["Games:"][event], prefValue])
+            elif event in tables["Practices:"]:
+                preference_map.append([slot_index, tables["Practices:"][event], prefValue])
 
         # ------------------- Parsing Pair -------------------
         # TODO practices too?
