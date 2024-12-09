@@ -11,23 +11,28 @@ from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
 # game min and practice min is less than amount of games/practices assigned
 def eval_min(schedule, pen_gamemin, pen_practicemin):
     penalty = 0
-    # CHANGE IMPORT ONCE CIRCULAR IMPORT ERROR 
-    # for now circular import error
     for slot_index, slot in enumerate(schedule[SLOT]):  
         #print(slot)
         #print(schedule[SLOT])
-        slot_max = slot[GAMX]
         #print(slot_max)
         #print(slots_from_testing)
+        slot_max = slot[GAMX]
         template_max = slots_from_testing[slot_index][GAMX]
         num_games_assigned = template_max - slot_max
+
         template_PRAX = slots_from_testing[slot_index][PRAX]
         slot_PRAX = slot[PRAX]
         num_prac_assigned = template_PRAX - slot_PRAX
         if slot[GAMN] > 0 and slot[GAMN] > (num_games_assigned):
-            penalty += (slot[GAMN] - num_games_assigned) * pen_gamemin # pen_gamemin = 10
-        if slot[PRAN] > 0 and slot[PRAN] > (num_prac_assigned): # PRAN = 3, PRAX = 2
-            penalty += (slot[PRAN] - num_prac_assigned) * pen_practicemin
+            if slot_index < SLOTS_PER_DAY:
+                penalty += ((slot[GAMN] - num_games_assigned) * pen_gamemin) / 2 
+            else:
+                penalty += ((slot[GAMN] - num_games_assigned) * pen_gamemin) / 3
+        if slot[PRAN] > 0 and slot[PRAN] > (num_prac_assigned):
+            if slot_index < SLOTS_PER_DAY*2:
+                penalty += ((slot[PRAN] - num_prac_assigned) * pen_gamemin) / 2 
+            else:
+                penalty += ((slot[PRAN] - num_prac_assigned) * pen_gamemin) / 4
             #print(penalty, "penalty game min + practice min") # pen_practicemin = 20
     #print("here eval min")
     return penalty
@@ -42,7 +47,6 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 # pref map = [[slotindex, gameindex, preference value]
 #              slotindex2, gameindex2, preference value2...]
 def eval_pref(schedule, preference_map):
-    # ------------- CODE I BELIEVE IS ALMOST RIGHT---------------
     penalty = 0
     for pref_entry in preference_map:
         slot_index, event_index, preference_value = pref_entry
@@ -94,30 +98,30 @@ def eval_pref(schedule, preference_map):
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
 
-    for event1, event2 in pair_map.items():
-        # Determine the type of the first event
-        if isinstance(event1, int):
-            # It's a game
-            event1_slot = schedule[GAME][event1][GAME_TIME]
-        elif isinstance(event1, tuple) and len(event1) == 2:
-            # It's a practice
-            event1_slot = schedule[PRAC][event1[0]][event1[1]]
-        else:
-            raise ValueError(f"Invalid event type for event1: {event1}")
+    # for event1, event2 in pair_map.items():
+    #     # Determine the type of the first event
+    #     if isinstance(event1, int):
+    #         # It's a game
+    #         event1_slot = schedule[GAME][event1][GAME_TIME]
+    #     elif isinstance(event1, tuple) and len(event1) == 2:
+    #         # It's a practice
+    #         event1_slot = schedule[PRAC][event1[0]][event1[1]]
+    #     else:
+    #         raise ValueError(f"Invalid event type for event1: {event1}")
 
-        # Determine the type of the second event
-        if isinstance(event2, int):
-            # It's a game
-            event2_slot = schedule[GAME][event2][GAME_TIME]
-        elif isinstance(event2, tuple) and len(event2) == 2:
-            # It's a practice
-            event2_slot = schedule[PRAC][event2[0]][event2[1]]
-        else:
-            raise ValueError(f"Invalid event type for event2: {event2}")
+    #     # Determine the type of the second event
+    #     if isinstance(event2, int):
+    #         # It's a game
+    #         event2_slot = schedule[GAME][event2][GAME_TIME]
+    #     elif isinstance(event2, tuple) and len(event2) == 2:
+    #         # It's a practice
+    #         event2_slot = schedule[PRAC][event2[0]][event2[1]]
+    #     else:
+    #         raise ValueError(f"Invalid event type for event2: {event2}")
 
-        # Compare the slots
-        if event1_slot != event2_slot:
-            penalty += pen_notpaired
+    #     # Compare the slots
+    #     if event1_slot != event2_slot:
+    #         penalty += pen_notpaired
 
 
     return penalty
@@ -152,8 +156,10 @@ def eval_secdiff(schedule, pen_section):
 # evaluate all penalties
 def eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map):
     return (
+    
         eval_min(schedule, penalties[0],
                  penalties[1]) * weights[0]
+
         + eval_pref(schedule, preference_map) * weights[1]
         + eval_pair(schedule, pair_map,
                     penalties[2]) * weights[2]
