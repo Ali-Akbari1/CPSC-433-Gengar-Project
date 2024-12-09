@@ -292,8 +292,9 @@ def assign_helper_partassign(slot_indices, event_index, schedule):
     if not isinstance(event_index, int):
         event_index = tuple(event_index)
 
-    if event_index in partassign and slot_indices != partassign[event_index]:
-        return False
+    if event_index in partassign:
+        if slot_indices[0] != partassign[event_index][0]:
+            return False
     return True
             
 

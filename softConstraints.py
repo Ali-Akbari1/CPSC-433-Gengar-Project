@@ -105,7 +105,7 @@ def eval_secdiff(schedule, pen_section):
     #         print(games)
 
 
-    return penalty
+    return 0
 
 
 
@@ -121,7 +121,7 @@ def eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map):
                     penalties[2]) * weights[2]
         + eval_secdiff(schedule,
                        # if two teams in the same tier
-                       penalties[3], tier_map) * weights[3]
+                       penalties[3]) * weights[3]
     )
 
 
