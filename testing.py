@@ -103,6 +103,8 @@ with open(args.filename, "r") as inputFile:
                         # gameCounter is the INDEX of the game in the games array,
                         # game_code is the tier and league information. 
                         gameCounter += 1
+                    practices.append([])
+                    prac_names.append([])
                 tables[currentHeader] = {}
                 _ = None
             else:
@@ -251,9 +253,14 @@ with open(args.filename, "r") as inputFile:
                 # negative one should point to last row, exactly what we want
                 # then it will indicate in the code that it is open practice too 
                 practices[-1].append(())
-                new_event_index = [-1, len(practices[-1])-1]
+                new_event_index = [len(practices) - 1, len(practices[-1])-1]
                 tables["Practices:"][line] = new_event_index
-                # index is the last row, and the length of that row minus one
+
+
+                prac_names[-1].append(line)
+
+
+                # index is the last row,and the length of that row minus one
 
                 # use the practice index, and
                 # put the list of games into open_practices
@@ -422,7 +429,10 @@ myModel = model.Model(slots, games, practices, preference_map,
 # main.print_schedule([games, practices, slots], 1, 1)
 
 def print_output(eval, schedule):
+    empty_list_names = []
+    empty_list_times = []
     print("Eval-value:", eval)
+
 
     for game_index, _ in enumerate(schedule[GAME]):
         # only need the first slot index, half hour was for collisions
@@ -430,16 +440,35 @@ def print_output(eval, schedule):
             game_slot = main.get_slot_string(schedule[GAME][game_index][GAME_TIME][0])
         else: 
             game_slot = "NOT ASSIGNED"
-        print(games_names[game_index], ":", game_slot)
+        empty_list_names.append(games_names[game_index])
+        empty_list_times.append(game_slot)
 
         for prac_index, _ in enumerate(schedule[PRAC][game_index]):
             if schedule[PRAC][game_index][prac_index] != ():
                 prac_slot = main.get_slot_string(schedule[PRAC][game_index][prac_index][0])
             else: 
                 prac_slot = "NOT ASSIGNED"
-            print(prac_names[game_index][prac_index], ":", prac_slot)
+            empty_list_names.append(prac_names[game_index][prac_index])
+            empty_list_times.append(prac_slot)
+
+        
+    for prac_index, _ in enumerate(schedule[PRAC][-1]):
+        if schedule[PRAC][-1][prac_index] != ():
+            prac_slot = main.get_slot_string(schedule[PRAC][-1][prac_index][0])
+        else:
+            prac_slot = "NOT ASSIGNED"
+        empty_list_names.append(prac_names[-1][prac_index])
+        empty_list_times.append(prac_slot)
 
 
+    zipp_names_times = list(zip(empty_list_names, empty_list_times))
+    sort_names_times = sorted(zipp_names_times, key=lambda x:x[0])
+    
+    empty_list_names, empty_list_times = zip(*sort_names_times)
+
+    for index_zip, s in enumerate(empty_list_names):  
+
+        print(empty_list_names[index_zip], ":", empty_list_times[index_zip])
 
 #TODO staff meeting
 

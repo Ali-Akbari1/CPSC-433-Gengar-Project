@@ -13,7 +13,7 @@ Practice slots:
 
 Games:
 CMSA U13T3 DIV 01
-CMSA U13T3 DIV 02
+CMSA U13T4 DIV 02
 
 Practices:
 
@@ -25,6 +25,6 @@ Unwanted:
 Preferences:
 
 Pair:
-CMSA U13T3 DIV 02, CMSA U13T3 DIV 01
+CMSA U13T4 DIV 02, CMSA U13T3 DIV 01
 
 Partial assignments:

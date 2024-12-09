@@ -210,6 +210,8 @@ def assign_helper_game_prac_overlap(slots_indices, event_index, schedule, DEBUG=
             # Friday collisions with Monday games
             if slot >= SLOTS_PER_DAY*2:
                 slot -= SLOTS_PER_DAY*2
+            if event_index[0] >= len(schedule[GAME]):
+                return True
             if slot in schedule[GAME][event_index[0]][GAME_TIME]:
                 if DEBUG: 
                     print("Fail on:", slot, " in game: ", schedule[GAME][event_index[0]])
@@ -221,8 +223,12 @@ def assign_helper_evening(slot_indices, event_index, schedule, DEBUG=False):
     # check whether the event has an evening restriction
     if isinstance(event_index, int):
         event_code = abs(schedule[GAME][event_index][GAME_CODE])
+
     else:
-        event_code = abs(schedule[GAME][event_index[0]][GAME_CODE])
+        if event_index[0] < len(schedule[GAME]):
+            event_code = abs(schedule[GAME][event_index[0]][GAME_CODE])
+        else: 
+            return True
     
     if event_code < EVENING_CONST:
         # event is not evening, no restriction
