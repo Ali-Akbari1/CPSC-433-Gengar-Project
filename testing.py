@@ -1,5 +1,6 @@
 import argparse
 import re
+
 import hardConstraints
 import main
 import model
@@ -41,7 +42,7 @@ prac_names = []  # practice array [["s", "s", "s"], ["s", "s", "s"], ...]
 # --------------------------- Parse ---------------------------
 with open(args.filename, "r") as inputFile:
 
-    preference_map = []
+    preference_map = {}
     pair_map = {}
     tier_map = {}
     tables = {}  # Using a dictionary, key: headers, values: rows
@@ -198,6 +199,7 @@ with open(args.filename, "r") as inputFile:
         if currentHeader == "Practices:":
             # ---------------------- Finish off games -------------------------
             # sorting to correct order and reading in new indices
+            # add a row to practices for open practices
             if not sorted_:
                 # alphabetize the games, keeping relative order to the abstracted games
                 zipped_ = list(zip(games_names, games))
@@ -209,6 +211,8 @@ with open(args.filename, "r") as inputFile:
                 # tier map
                 for name_ in games_names:
                     tables["Games:"][name_] = gameCounter
+
+
                     # decode the gamecode to enter into tier map
                     game_code = abs(games[gameCounter][GAME_CODE])
                     if game_code > EVENING_CONST:
@@ -216,11 +220,10 @@ with open(args.filename, "r") as inputFile:
                     tier_map[gameCounter] = game_code
                     # gameCounter is the INDEX of the game in the games array,
                     # game_code is the tier and league information. 
-                    gameCounter +=1
+                    gameCounter += 1
 
             # TODO open practices
             for i in range(len(line)):
-                
                 # TODO yikes, we do not need to do that much work
                 # slice throught the string until we have a substring in Games
                 subString = line[:i+1]
@@ -242,13 +245,21 @@ with open(args.filename, "r") as inputFile:
 
             # case where 'DIV' was dropped, every division of this tier gets the practice
             if pracArr[-4] != "DIV":
+                # get the game code for the league/ tier
                 tierStr = pracArr[0] + " " + pracArr[1]
-                for key in tables["Games:"]:
-                    if tierStr in key:  # TODO is this ever true?  the whole game line is in there, not just the tierStr = pracArr[0] + " " + pracArr[1]
-                        # TODO how do we handle this for not DIV?
-                        practices[tables["Games:"][key]].append(())
-                        tables["Practices:"][line] = [
-                            tables["Games:"][key], int(pracArr[-1])]
+                game_code = league_and_tiers.get_number(tierStr)
+
+                # open practices are the last row
+                # negative one should point to last row, exactly what we want
+                # then it will indicate in the code that it is open practice too 
+                practices[-1].append(())
+                new_event_index = [-1, len(practices[-1])-1]
+                tables["Practices:"][line] = new_event_index
+                # index is the last row, and the length of that row minus one
+
+                # use the practice index, and
+                # put the list of games into open_practices
+                hardConstraints.set_open_practice(new_event_index, tier_map[game_code])
 
             # elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
             #     # print(pracArr)
@@ -321,16 +332,17 @@ with open(args.filename, "r") as inputFile:
 
         # ------------------- Parsing Preferences -------------------
         elif currentHeader == "Preferences:":
-            # TODO practice preferences
-            # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
-            pref_parts = line.split(", ")
-            day, time, event, prefValue = pref_parts
-            slot_index = main.get_slot_index(day, time)
+            # # TODO practice preferences (this is not working with our good hard contraints yet)
+            # # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
+            # pref_parts = line.split(", ")
+            # day, time, event, prefValue = pref_parts
+            # slot_index = main.get_slot_index(day, time)
 
-            if event in tables["Games:"]:
-                preference_map.append([slot_index, tables["Games:"][event], prefValue])
-            elif event in tables["Practices:"]:
-                preference_map.append([slot_index, tables["Practices:"][event], prefValue])
+            # if event in tables["Games:"]:
+            #     preference_map.append([slot_index, tables["Games:"][event], prefValue])
+            # elif event in tables["Practices:"]:
+            #     preference_map.append([slot_index, tables["Practices:"][event], prefValue])
+            continue
 
         # ------------------- Parsing Pair -------------------
         # TODO practices too?
@@ -384,9 +396,10 @@ main.set_pair_map(pair_map)
 #initialize it
 
 myModel = model.Model(slots, games, practices, preference_map,
-                       pair_map, tier_map, weights, penalties)
+                      pair_map, tier_map, weights, penalties)
 
-# run it #mymodel
+
+
 # print(args.gameminPenalty)
 
 # inputParser.add_argument("gameminPenalty", type=int)
