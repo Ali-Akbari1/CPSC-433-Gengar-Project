@@ -3,13 +3,10 @@ import main as m
 from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
     GAME, GAME_CODE, GAME_TIME, \
     PRAC, \
-    GAMX, GAMN, PRAX, PRAN, SLOT
+    GAMX, GAMN, PRAX, PRAN, SLOT, EVENING_CONST
 
 
-# CONSTANTS were changed to numbers but the numbers are different,
-# however those functions i believe were working so not going to change them for now
 
-# eval_min, eval_pref, eval_pair working
 
 # game min and practice min is less than amount of games/practices assigned
 def eval_min(schedule, pen_gamemin, pen_practicemin):
@@ -24,8 +21,11 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 
     return penalty
 
-# pref where games are scheduled
 
+
+
+
+# pref where games are scheduled
 # TODO FIX EVAL PREF, I believe is right but schedule does not have any game times assigned to it 
 # games and practices have a certain preference number to be in a time slot
 # go through the preference map check if the game or practice is in the correct slot if not add the penalty to the preference number
@@ -34,7 +34,7 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 def eval_pref(schedule, preference_map):
 
 
-    # ------------- CODE I BELIEVE IS ALMOST RIGHT
+    # ------------- CODE I BELIEVE IS ALMOST RIGHT---------------
     # penalty = 0
     # for pref_entry in preference_map:
     #     slot_index, event_index, preference_value = pref_entry
@@ -50,8 +50,8 @@ def eval_pref(schedule, preference_map):
     #         # Add the penalty if the game is not in the preferred slot
     #         penalty += int(preference_value)
 
-    # return penalty
     return 0
+    
             
 
 
@@ -79,10 +79,10 @@ def eval_pref(schedule, preference_map):
 
 
 
+
+
 # games and/or practices to be scheduled at same times
 # TODO needs testing
-
-
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
 
@@ -114,26 +114,31 @@ def eval_pair(schedule, pair_map, pen_notpaired):
 
     return penalty
 
+
+
+
+
+
+
 # TODO game code should be different for diff disions with the same club - does this wok?
 # TODO fix eval_secdiff
-
 # No more tier map
-
-# if two teams in the same tier
-def eval_secdiff(schedule, tier_map, pen_section):
+# game_code = abs(games[gameCounter][GAME_CODE])
+# if game_code > EVENING_CONST:
+#     game_code -= EVENING_CONST
+# if two teams in different divisions and same tier and age 
+# game_code is the same for each 
+def eval_secdiff(schedule, pen_section):
     penalty = 0
-    for slot_index, slot in enumerate(schedule[2]):
-        # List of leagues in the current slot
-        leagues_in_slot = [
-            game[GAME_CODE] for game in schedule[0] if slot_index in game[GAME_TIME]
-        ]
+    game_code = abs(games[gameCounter][GAME_CODE])
+    if game_code > EVENING_CONST:
+        game_code -= EVENING_CONST
+    print(game_code, "game code")
 
-        for league1 in leagues_in_slot:
-            for league2 in leagues_in_slot:
-                if league1 != league2 and tier_map[league1] == tier_map[league2]:
-                    # print("here")
-                    penalty += pen_section
     return penalty
+
+
+
 
 
 # evaluate all penalties
@@ -144,72 +149,101 @@ def eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map):
         + eval_pref(schedule, preference_map) * weights[1]
         + eval_pair(schedule, pair_map,
                     penalties[2]) * weights[2]
-        + eval_secdiff(schedule, tier_map,
+        + eval_secdiff(schedule,
                        # if two teams in the same tier
                        penalties[3]) * weights[3]
     )
 
+
+
+
+
+
+
+
+
 # TODO after main evals are fixed this should be remodelled to resemble them!
 # if needed can be replaced with:
-
-
 def eval_penalty_contributions(schedule, weights, penalties, preference_map, pair_map, tier_map):
     contributions = {}  # Dictionary to store contributions for each event
 
     # Evaluate preference penalties
-    for game_id, game in enumerate(schedule[GAME]):
-        if game[GAME_TIME]:
-            penalty = 0
-            for slot in game[GAME_TIME]:
-                penalty += preference_map.get((game_id, slot), 0)
-            contributions[('game', game_id)] = penalty * weights[1]
+    for pref_entry in preference_map:
+        slot_index, event_index, preference_value = pref_entry
+        penalty = 0
+
+        # Check if the event is a game or practice
+        if isinstance(slot_index, tuple):
+            # It's a practice
+            if slot_index not in schedule[PRAC][event_index]:
+                penalty += int(preference_value)
+        else:
+            # It's a game
+            if slot_index not in schedule[GAME][event_index][GAME_TIME]:
+                penalty += int(preference_value)
+
+        contributions[('event', event_index)] = contributions.get(('event', event_index), 0) + penalty * weights[1]
 
     # Evaluate pairing penalties
     for event1, event2 in pair_map.items():
-        event1_slot = schedule[GAME][event1][GAME_TIME] if isinstance(
-            event1, int) else schedule[PRAC][event1[0]][event1[1]]
-        event2_slot = schedule[GAME][event2][GAME_TIME] if isinstance(
-            event2, int) else schedule[PRAC][event2[0]][event2[1]]
+        # Determine slots for both events
+        if isinstance(event1, int):
+            event1_slot = schedule[GAME][event1][GAME_TIME]
+        else:  # event1 is a practice
+            event1_slot = schedule[PRAC][event1[0]][event1[1]]
+
+        if isinstance(event2, int):
+            event2_slot = schedule[GAME][event2][GAME_TIME]
+        else:  # event2 is a practice
+            event2_slot = schedule[PRAC][event2[0]][event2[1]]
+
+        # Add penalty if events are not paired in the same slot
         if event1_slot != event2_slot:
             penalty = penalties[2] * weights[2]
-            contributions[('event', event1)] = contributions.get(
-                ('event', event1), 0) + penalty / 2
-            contributions[('event', event2)] = contributions.get(
-                ('event', event2), 0) + penalty / 2
+            contributions[('event', event1)] = contributions.get(('event', event1), 0) + penalty / 2
+            contributions[('event', event2)] = contributions.get(('event', event2), 0) + penalty / 2
 
     # Evaluate section difference penalties
     for slot_index, slot in enumerate(schedule[SLOT]):
-        game_ids_in_slot = [game_id for game_id, game in enumerate(
-            schedule[GAME]) if slot_index in game[GAME_TIME]]
+        game_ids_in_slot = [
+            game_id for game_id, game in enumerate(schedule[GAME]) if slot_index in game[GAME_TIME]
+        ]
         for i in range(len(game_ids_in_slot)):
             for j in range(i + 1, len(game_ids_in_slot)):
-                league1 = schedule[GAME][game_ids_in_slot[i]][GAME_CODE]
-                league2 = schedule[GAME][game_ids_in_slot[j]][GAME_CODE]
-                if league1 != league2 and tier_map[league1] == tier_map[league2]:
+                game1 = game_ids_in_slot[i]
+                game2 = game_ids_in_slot[j]
+                league1 = abs(schedule[GAME][game1][GAME_CODE])
+                league2 = abs(schedule[GAME][game2][GAME_CODE])
+
+                # Check if they are in the same tier/age group but different divisions
+                if league1 == league2:
                     penalty = penalties[3] * weights[3]
-                    contributions[('game', game_ids_in_slot[i])] = contributions.get(
-                        ('game', game_ids_in_slot[i]), 0) + penalty / 2
-                    contributions[('game', game_ids_in_slot[j])] = contributions.get(
-                        ('game', game_ids_in_slot[j]), 0) + penalty / 2
+                    contributions[('game', game1)] = contributions.get(('game', game1), 0) + penalty / 2
+                    contributions[('game', game2)] = contributions.get(('game', game2), 0) + penalty / 2
 
     # Evaluate minimum fill penalties
     for slot_index, slot in enumerate(schedule[SLOT]):
         if slot[GAMN] > 0 and slot[GAMX] < slot[GAMN]:
             penalty = (slot[GAMN] - slot[GAMX]) * penalties[0] * weights[0]
-            assigned_games = [game_id for game_id, game in enumerate(
-                schedule[GAME]) if slot_index in game[GAME_TIME]]
+            assigned_games = [
+                game_id for game_id, game in enumerate(schedule[GAME]) if slot_index in game[GAME_TIME]
+            ]
             for game_id in assigned_games:
-                contributions[('game', game_id)] = contributions.get(
-                    ('game', game_id), 0) + penalty / len(assigned_games)
+                contributions[('game', game_id)] = contributions.get(('game', game_id), 0) + penalty / len(assigned_games)
+
         if slot[PRAN] > 0 and slot[PRAX] < slot[PRAN]:
             penalty = (slot[PRAN] - slot[PRAX]) * penalties[1] * weights[0]
-            assigned_practices = [(game_id, prac_id) for game_id, practices in enumerate(
-                schedule[PRAC]) for prac_id, practice in enumerate(practices) if slot_index in practice]
+            assigned_practices = [
+                (game_id, prac_id) for game_id, practices in enumerate(schedule[PRAC])
+                for prac_id, practice in enumerate(practices) if slot_index in practice
+            ]
             for game_id, prac_id in assigned_practices:
                 contributions[('practice', game_id, prac_id)] = contributions.get(
-                    ('practice', game_id, prac_id), 0) + penalty / len(assigned_practices)
+                    ('practice', game_id, prac_id), 0
+                ) + penalty / len(assigned_practices)
 
     return contributions
+
 
 ## --------------------------- TESTING -------------------- ##
 
