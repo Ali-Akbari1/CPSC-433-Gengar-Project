@@ -1,39 +1,27 @@
-#from testing import preference_map, tier_map, pair_map
+
 import main as m
 from main import HOURS_PER_DAY, SLOTS_PER_DAY, \
     GAME, GAME_CODE, GAME_TIME, \
     PRAC, \
-    GAMX, GAMN, PRAX, PRAN, SLOT, slots_from_testing, pref_map_from_testing, pair_map_from_testing, tier_map_from_testing
+    GAMX, GAMN, PRAX, PRAN, SLOT
 
 
+# CONSTANTS were changed to numbers but the numbers are different,
+# however those functions i believe were working so not going to change them for now
 
-# slots = [[]]
+# eval_min, eval_pref, eval_pair working
+
 # game min and practice min is less than amount of games/practices assigned
 def eval_min(schedule, pen_gamemin, pen_practicemin):
-    #print(schedule[0])
-    #print(schedule[1])
-    #print(schedule)
     penalty = 0
-    # CHANGE IMPORT ONCE CIRCULAR IMPORT ERROR 
-    # for now circular import error
-    for slot_index, slot in enumerate(schedule[SLOT]):  
-        #print(slot)
-        #print(schedule[SLOT])
-        slot_max = slot[GAMX]
-        #print(slot_max)
-        #print(slots_from_testing)
-        template_max = slots_from_testing[slot_index][GAMX]
-        num_games_assigned = template_max - slot_max
-        template_PRAX = slots_from_testing[slot_index][PRAX]
-        slot_PRAX = slot[PRAX]
-        num_prac_assigned = template_PRAX - slot_PRAX
-        if slot[GAMN] > 0 and slot[GAMN] > (num_games_assigned):
-            penalty += (slot[GAMN] - num_games_assigned) * pen_gamemin # pen_gamemin = 10
-            #print(penalty, "penalty game min")
-        if slot[PRAN] > 0 and slot[PRAN] > (num_prac_assigned): # PRAN = 3, PRAX = 2
-            penalty += (slot[PRAN] - num_prac_assigned) * pen_practicemin
-            #print(penalty, "penalty game min + practice min") # pen_practicemin = 20
-    #print("here eval min")
+    for slot in schedule[2]:  # was for slot in schedule[SLOT] but SLOT is equal to 2
+        # print(slot)
+        if slot[GAMN] > 0 and slot[GAMX] < slot[GAMN]:
+            penalty += (slot[GAMN] - slot[GAMX]) * pen_gamemin
+
+        if slot[PRAN] > 0 and slot[PRAX] < slot[PRAN]:
+            penalty += (slot[PRAN] - slot[PRAX]) * pen_practicemin
+
     return penalty
 
 # pref where games are scheduled
@@ -93,6 +81,8 @@ def eval_pref(schedule, preference_map):
 
 # games and/or practices to be scheduled at same times
 # TODO needs testing
+
+
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
 
@@ -121,7 +111,7 @@ def eval_pair(schedule, pair_map, pen_notpaired):
         if event1_slot != event2_slot:
             penalty += pen_notpaired
 
-    #print("Pairing penalty calculated:", penalty)
+
     return penalty
 
 # TODO game code should be different for diff disions with the same club - does this wok?
@@ -132,17 +122,17 @@ def eval_pair(schedule, pair_map, pen_notpaired):
 # if two teams in the same tier
 def eval_secdiff(schedule, tier_map, pen_section):
     penalty = 0
-    # for slot_index, slot in enumerate(schedule[2]):
-    #     # List of leagues in the current slot
-    #     leagues_in_slot = [
-    #         game[GAME_CODE] for game in schedule[0] if slot_index in game[GAME_TIME]
-    #     ]
+    for slot_index, slot in enumerate(schedule[2]):
+        # List of leagues in the current slot
+        leagues_in_slot = [
+            game[GAME_CODE] for game in schedule[0] if slot_index in game[GAME_TIME]
+        ]
 
-    #     for league1 in leagues_in_slot:
-    #         for league2 in leagues_in_slot:
-    #             if league1 != league2 and tier_map[league1] == tier_map[league2]:
-    #                 # print("here")
-    #                 penalty += pen_section
+        for league1 in leagues_in_slot:
+            for league2 in leagues_in_slot:
+                if league1 != league2 and tier_map[league1] == tier_map[league2]:
+                    # print("here")
+                    penalty += pen_section
     return penalty
 
 
@@ -162,11 +152,6 @@ def eval_cost(schedule, weights, penalties, preference_map, pair_map, tier_map):
 # TODO after main evals are fixed this should be remodelled to resemble them!
 # if needed can be replaced with:
 
-
-# game_code = abs(games[game index][GAME_CODE])
-# if game_code > EVENING_CONST
-#   game_code -= EVENING_CONST
-#
 
 def eval_penalty_contributions(schedule, weights, penalties, preference_map, pair_map, tier_map):
     contributions = {}  # Dictionary to store contributions for each event
@@ -226,23 +211,18 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
 
     return contributions
 
-
-
-# # --------------------------- TESTING -------------------- ##
+## --------------------------- TESTING -------------------- ##
 
 
 # def test_eval_functions():
 #     # Mock data
 #     scheduleEvalSecDiff = [
-
-#         # Games (mock data with (code, time slot))
-#         [[0, (0)], [1, (0)], [2, (0)]],
-#         # Practices
-#         [[()],
-#         [()],
-#         [()]],
 #         # Slots (mock example with some fields)
-#         [[2, 1, 1,  4]],
+#         [{GAMN: 2, GAMX: 1, PRAN: 1, PRAX: 4}],
+#         # Games (mock data with (code, time slot))
+#         [(0, [0]), (1, [0]), (2, [0])],
+#         # Practices
+#         [[[]], [[]], [[]]],
 #     ]
 
 #     schedule_eval_min = [
@@ -259,33 +239,27 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
 #     ]
 # ]
 #     schedule_eval_pref = [
-
+#     # Slots
+#     [{}],
 #     # Games
 #     [
-#         [0, (0)],  # Game 0 in slot 0
-#         [1,(0)],  # Game 1 in slot 0
+#         (0, [0]),  # Game 0 in slot 0
+#         (1, [0]),  # Game 1 in slot 0
 #     ],
 #     # Practices
-#     [[()],
-#     [()],
-#     [()]],
-#     # Slots
-#     [[]],
+#     [[[]], [[]]],
 # ]
 
 #     schedule_eval_pair = [
-
+#     # Slots
+#     [{}],
 #     # Games
 #     [
-#         [0, (0)],  # Game 0 in slot 0
-#         [1, (1)],  # Game 1 in slot 1
+#         (0, [0]),  # Game 0 in slot 0
+#         (1, [1]),  # Game 1 in slot 1
 #     ],
 #     # Practices
-#     [[()],
-#     [()],
-#     [()]],
-#     # Slots
-#     [[]],
+#     [[[]], [[]]],
 # ]
 #     pair_map_eval_pair = {0: 1, 1: 0}  # Games 0 and 1 are paired
 
@@ -298,17 +272,16 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
 #     preference_map = {(0, 0): 5, (1, 0): 3}  # Preferences for games
 #     pair_map = {0: 1, 1: 0}  # Pairing of games
 
-#     print("PRINTING EVALS")
-#     #print(schedule_eval_min)
-#     print(eval_min(schedule_eval_min, penalties[0], penalties[1])) ## penalties[0] = 10, penalties[1] = 20
-#     print(eval_pref(schedule_eval_pref, preference_map_eval_pref)) ## eval_pref = 8
-#     print(eval_pair(schedule_eval_pair, pair_map_eval_pair, penalties[2])) ## eval_pair = 1
-#     #print(eval_secdiff(scheduleEvalSecDiff, tier_map, penalties[3])) ## eval_secdiff = 80
+#     # print("PRINTING EVALS")
+#     # print(eval_min(schedule_eval_min, penalties[0], penalties[1])) ## penalties[0] = 10, penalties[1] = 20
+#     # print(eval_pref(schedule_eval_pref, preference_map_eval_pref)) ## eval_pref = 8
+#     # print(eval_pair(schedule_eval_pair, pair_map_eval_pair, penalties[2])) ## eval_pair = 1
+#     # print(eval_secdiff(scheduleEvalSecDiff, tier_map, penalties[3])) ## eval_secdiff = 80
 
 
 #     # Test eval_secdiff
-#     #secdiff_penalty = eval_secdiff(scheduleEvalSecDiff, tier_map, penalties[3]) ## penalties[3] == 40
-#     #assert secdiff_penalty == 80, f"Expected 40, got {secdiff_penalty}"
+#     secdiff_penalty = eval_secdiff(scheduleEvalSecDiff, tier_map, penalties[3]) ## penalties[3] == 40
+#     assert secdiff_penalty == 80, f"Expected 40, got {secdiff_penalty}"
 
 #     # Test eval_cost
 #     ## sec_diff = 40

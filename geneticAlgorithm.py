@@ -31,8 +31,8 @@ def mutate(schedule, weights, penalties, preference_map, pair_map, tier_map):
     probabilities = [penalty / total_penalty for penalty in penalties]
 
     # Randomly select an event based on the computed probabilities
-    selected_event = random.choices(events, weights=probabilities, k=1)[0]
 
+    selected_event = random.choices(events, weights=probabilities, k=1)[0]
     # Find all possible alternative placements for the selected event
     possible_slots = find_possible_slots(selected_event, schedule)
 
@@ -52,8 +52,7 @@ def mutate(schedule, weights, penalties, preference_map, pair_map, tier_map):
 def find_possible_slots(event_index, schedule):
     possible_slots = []
     current_assignment = None
-
-    if isinstance(event_index, int):
+    if isinstance(event_index, int) :
         game_id = event_index
         current_assignment = schedule[GAME][game_id][GAME_TIME]
         unassign(event_index, schedule)
@@ -79,6 +78,38 @@ def find_possible_slots(event_index, schedule):
                     if assign(event_index, slots_indices, schedule):
                         possible_slots.append(slots_indices)
                         unassign(event_index, schedule)  # Rollback
+        if current_assignment:
+                assign(event_index, current_assignment, schedule)
+        
+    elif event_index[0] == 'game':
+        game_id = event_index[1]
+        current_assignment = schedule[GAME][game_id][GAME_TIME]
+        unassign(event_index[1], schedule)
+
+        # Monday and Tuesday slots for games
+        for day in range(0, SLOTS_PER_DAY * 2, SLOTS_PER_DAY):
+            if day == 0:
+                # Monday
+                for start_slot in range(day, day + SLOTS_PER_DAY, 2):
+                    slots_indices = [start_slot, start_slot + 1]
+                    if slots_indices == current_assignment:
+                        continue
+                    if assign(event_index[1], slots_indices, schedule):
+                        possible_slots.append(slots_indices)
+                        unassign(event_index[1], schedule)  # Rollback
+            else:
+                # Tuesday
+                for start_slot in range(day, day + SLOTS_PER_DAY - 2, 3):
+                    slots_indices = [start_slot,
+                                     start_slot + 1, start_slot + 2]
+                    if slots_indices == current_assignment:
+                        continue
+                    if assign(event_index[1], slots_indices, schedule):
+                        possible_slots.append(slots_indices)
+                        unassign(event_index[1], schedule)  # Rollback
+        if current_assignment:
+            assign(event_index[1], current_assignment, schedule)
+
 
     elif len(event_index) == 2:
         game_id = event_index[0]
@@ -107,11 +138,41 @@ def find_possible_slots(event_index, schedule):
                     if assign(event_index, slots_indices, schedule):
                         possible_slots.append(slots_indices)
                         unassign(event_index, schedule)  # Rollback
+        if current_assignment:
+                assign(event_index, current_assignment, schedule)
+            
+    elif event_index[0] == 'practice':
+        game_id = event_index[1]
+        prac_id = event_index[2]
+        current_assignment = schedule[PRAC][game_id][prac_id]
+        unassign((game_id, prac_id), schedule)
+
+        # Monday, Tuesday, and Friday slots for practices
+        for day in range(0, SLOTS_PER_DAY * 3, SLOTS_PER_DAY):
+            if day == 0 or day == SLOTS_PER_DAY:
+                # Monday or Tuesday
+                for start_slot in range(day, day + SLOTS_PER_DAY, 2):
+                    slots_indices = [start_slot, start_slot + 1]
+                    if slots_indices == current_assignment:
+                        continue
+                    if assign((game_id, prac_id), slots_indices, schedule):
+                        possible_slots.append(slots_indices)
+                        unassign((game_id, prac_id), schedule)  # Rollback
+            else:
+                # Friday
+                for start_slot in range(day, day + SLOTS_PER_DAY - 3, 4):
+                    slots_indices = [start_slot, start_slot +
+                                     1, start_slot + 2, start_slot + 3]
+                    if slots_indices == current_assignment:
+                        continue
+                    if assign((game_id, prac_id), slots_indices, schedule):
+                        possible_slots.append(slots_indices)
+                        unassign((game_id, prac_id), schedule)  # Rollback
+            # Reassign the original assignment if it existed
+        if current_assignment:
+            assign((game_id, prac_id), current_assignment, schedule)
+
     else:
         raise ValueError("Invalid event_index in find_possible_slots")
-
-    # Reassign the original assignment if it existed
-    if current_assignment:
-        assign(event_index, current_assignment, schedule)
 
     return possible_slots

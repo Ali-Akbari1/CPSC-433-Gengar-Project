@@ -217,7 +217,7 @@ with open(args.filename, "r") as inputFile:
                     # gameCounter is the INDEX of the game in the games array,
                     # game_code is the tier and league information. 
                     gameCounter +=1
-            #print(games_names)
+
             # TODO open practices
             for i in range(len(line)):
                 
@@ -230,13 +230,13 @@ with open(args.filename, "r") as inputFile:
                     associated_game_index = tables["Games:"][subString]
                     practices[associated_game_index].append(())
                     prac_names[associated_game_index].append(line)
-                    #print("DEBUG: ",line, len(prac_names[associated_game_index]))
+
                     # add the index of the corresponding game, append an empty tuple
                     
                     # add to tables for easy access later
                     
                     tables["Practices:"][line] = [associated_game_index, len(practices[associated_game_index])-1]
-                    #print(tables["Practices:"][line], "table")
+
                     break
             pracArr = line.split()
 
@@ -387,19 +387,6 @@ myModel = model.Model(slots, games, practices, preference_map,
                        pair_map, tier_map, weights, penalties)
 
 # run it #mymodel
-
-GENERATIONS = 100  #adjust this as needed
-
-print("Running the model search...")
-best_schedule = myModel.run_search(generations=GENERATIONS)
-
-# Retrieve and evaluate the best schedule
-if best_schedule is not None:
-    final_score = myModel.evaluate_solution(best_schedule)
-    print_output(final_score, best_schedule)
-else:
-    print("No valid schedule found.")
-
 # print(args.gameminPenalty)
 
 # inputParser.add_argument("gameminPenalty", type=int)
@@ -426,18 +413,37 @@ def print_output(eval, schedule):
 
     for game_index, _ in enumerate(schedule[GAME]):
         # only need the first slot index, half hour was for collisions
-        if schedule[GAME][game_index][GAME_TIME][0]:
+        if schedule[GAME][game_index][GAME_TIME] != ():
             game_slot = main.get_slot_string(schedule[GAME][game_index][GAME_TIME][0])
         else: 
             game_slot = "NOT ASSIGNED"
         print(games_names[game_index], ":", game_slot)
 
         for prac_index, _ in enumerate(schedule[PRAC][game_index]):
-            if schedule[PRAC][game_index][prac_index][0]:
+            if schedule[PRAC][game_index][prac_index] != ():
                 prac_slot = main.get_slot_string(schedule[PRAC][game_index][prac_index][0])
             else: 
                 prac_slot = "NOT ASSIGNED"
             print(prac_names[game_index][prac_index], ":", prac_slot)
+
+
+
+#TODO staff meeting
+
+
+GENERATIONS = 100  #adjust this as needed
+
+print("Running the model search...")
+best_schedule = myModel.run_search(generations=GENERATIONS)
+
+# Retrieve and evaluate the best schedule
+if best_schedule is not None:
+    final_score = myModel.evaluate_solution(best_schedule)
+    print_output(final_score, best_schedule)
+else:
+    print("No valid schedule found.")
+
+
 
 
 # s_games = []
