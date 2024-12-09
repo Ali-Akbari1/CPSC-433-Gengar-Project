@@ -30,13 +30,16 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
 # TODO in testing preference map key for games is (game_id, slot)
 # where  slot = f"{day}, {time}" and game is its name not the current format
 
-
 def eval_pref(schedule, preference_map):
 
 
+    #print("here eval pref")
     return 0
 
-# games and/or practices to be scheduled at same times
+# pref map = [slotindex, game
+def eval_pref(schedule, preference_map):
+    penalty = 0
+    for game_id, game_slots in enumerate(schedule[SLOT]):
 
 # TODO needs testing
 
@@ -182,15 +185,17 @@ def eval_penalty_contributions(schedule, weights, penalties, preference_map, pai
 #     ]
 
 #     schedule_eval_min = [
+#     # Games
+#     [[0, ()], [1, (1)]],
+#     # Practices
+#     [[()],
+#     [()],
+#     [()]],
 #     # Slots
 #     [
-#         {GAMN: 3, GAMX: 4, PRAN: 1, PRAX: 0},  # Exceeds minimum games, no practices
-#         {GAMN: 2, GAMX: 1, PRAN: 2, PRAX: 1},  # Does not meet min games or practices
-#     ],
-#     # Games
-#     [(0, [0]), (1, [1])],
-#     # Practices
-#     [[[]], [[]]],
+#         [ 3,  4,  1,  0],  # Exceeds minimum games, no practices
+#         [ 2,  1,  1,  2],  # Does not meet min games or practices
+#     ]
 # ]
 #     schedule_eval_pref = [
 #     # Slots
