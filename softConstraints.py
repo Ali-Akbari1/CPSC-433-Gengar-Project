@@ -40,6 +40,7 @@ def eval_pref(schedule, preference_map):
 def eval_pref(schedule, preference_map):
     penalty = 0
     for game_id, game_slots in enumerate(schedule[SLOT]):
+        return 0
 
 # TODO needs testing
 
