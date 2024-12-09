@@ -100,7 +100,6 @@ with open(args.filename, "r") as inputFile:
                         if game_code > EVENING_CONST:
                             game_code -= EVENING_CONST
                         tier_map[gameCounter] = game_code
-                        print(tier_map)
                         # gameCounter is the INDEX of the game in the games array,
                         # game_code is the tier and league information. 
                         gameCounter += 1
