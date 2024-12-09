@@ -28,15 +28,7 @@ class Model:
         self.population = []
 
         self.initialize_population()
-        print("MODEL")
-        print(self.slots)
-        print(self.games)
-        print(self.practices)
-        print(self.preference_map)
-        print(self.pair_map)
-        print(self.tier_map)
-        print(self.weights)
-        print(self.penalties)
+    
 
     def initialize_population(self):
         for _ in range(self.population_size):
@@ -60,10 +52,9 @@ class Model:
                               r=10)
 
             result = root.search(max_depth=self.max_iter)
-            print(result, "RESULT")
+
             # result is either None or a complete (slots, games, practices)
             if result is not None:
-                print("NOT NONE-------------------------------")
                 # result = (slots, games, practices)
                 self.population.append(result)
             else:
