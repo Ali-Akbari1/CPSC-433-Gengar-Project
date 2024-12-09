@@ -13,6 +13,14 @@ open_practices = {} # dictionary  open_practices[practice_tuple] = [game_indices
 upper_levels = {} # dictionary of different upper level clusters. Different divisions would not collide (I think)
 partassign = {} # dictionary of partial assignments partassign[event_index] = (required slots)
 
+special12 = []
+special13 = []
+
+special12_index = None
+special13_index = None
+
+
+
 # event_index    - one number for games, two for practices. This is where to assign the slots to. 
 # slots_indices  - a list of slots to assign the game/ practice
 # solution       - where to store the information that an event is assigned
@@ -55,6 +63,12 @@ def assign(event_index, slots_indices, schedule, set=True, DEBUG=False):
         if DEBUG:
             print("Assign failed. Upper Level incorrect: ", event_index, slots_indices)
         return False
+
+    if not assign_helper_special(event_index, schedule, slots_indices):
+        if DEBUG:
+            print("Assign failed. Special incorrect: ", event_index, slots_indices)
+        return False
+
 
     # if integer, event is a game (one index)
     if(isinstance(event_index, int)):
@@ -315,6 +329,45 @@ def unassign(event_index, schedule, DEBUG=False):
         schedule[PRAC][event_index[0]][event_index[1]] = ()
 
 
+def assign_helper_special(event_index, schedule, slot_indices):
+    if isinstance(event_index, int):
+        return True
+    else:
+        event_index = tuple(event_index)
+
+    if event_index == special12_index:
+
+        for event in special12:
+            if isinstance(event, int):
+                event_slots = schedule[GAME][event][GAME_TIME]
+                for slot in event_slots:
+                    if slot in slot_indices:
+                        return False
+            
+            else:
+                event_slots = schedule[PRAC][event[0]][event[1]]
+                for slot in event_slots:
+                    if slot in slot_indices:
+                        return False
+
+    if event_index == special13_index:
+        for event in special13:
+            if isinstance(event, int):
+
+                event_slots = schedule[GAME][event][GAME_TIME]
+
+                for slot in event_slots:
+                    if slot in slot_indices:
+                        return False
+            
+            else:
+                event_slots = schedule[PRAC][event[0]][event[1]]
+                for slot in event_slots:
+                    if slot in slot_indices:
+                        return False
+
+    return True
+
 # --------------------------- checks ---------------------------
 # shouldn't need this (loop invariant), but maybe for debugging
 def check_all_maxes_non_negative(schedule):
@@ -467,6 +520,28 @@ def set_partassign(slots_indices, event_index):
     else:
         # true if double, false if different
         return slots_indices == partassign[event_index]
+
+def set_special(special_index, event_index, special_age):
+    global special12_index
+    global special13_index
+
+    if not isinstance(event_index, int):
+        event_index = tuple(event_index)
+
+
+
+    if special_age == 12:
+
+        special12.append(event_index) 
+        special12_index = special_index
+
+    else: 
+
+        special13.append(event_index)
+        special13_index = special_index
+
+
+
 
 
 # set1 = set([1,2])

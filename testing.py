@@ -32,6 +32,8 @@ inputParser.add_argument("sectionPenalty", type=int)
 # Parse the arguments
 args = inputParser.parse_args()
 
+flag_special_prac_U12 = False
+flag_special_prac_U13 = False
 
 def get_associated_game(prac): # TODO not working for no DIV practices
     return prac.subStr[0:-7]
@@ -104,6 +106,30 @@ with open(args.filename, "r") as inputFile:
 
                         if int(games_names[gameCounter].split()[1][1:3]) >= 15:
                             hardConstraints.set_upper_level(1, gameCounter)
+
+                        lineCopy1 = games_names[gameCounter].split()
+                        if  lineCopy1[0]== 'CMSA' and lineCopy1[1] == 'U13T1':       
+
+                            if flag_special_prac_U13 == False:        
+
+                                flag_special_prac_U13 = True
+
+
+                                special_prac_index_U13 = (gameCounter, len(practices[gameCounter]))
+                                practices[gameCounter].append(())
+                                prac_names[gameCounter].append('CMSA U13T1S')
+
+                                hardConstraints.set_special(special_prac_index_U13, gameCounter, 13)
+
+                        if lineCopy1[0] == 'CMSA' and lineCopy1[1] == 'U12T1':
+                            if flag_special_prac_U12 == False:
+                                flag_special_prac_U12 = True
+
+                                special_prac_index_U12 = (gameCounter, len(practices[gameCounter]))
+                                practices[gameCounter].append(())
+                                prac_names[gameCounter].append('CMSA U12T1S')
+
+                                hardConstraints.set_special(special_prac_index_U12, gameCounter, 12)
 
 
                         # gameCounter is the INDEX of the game in the games array,

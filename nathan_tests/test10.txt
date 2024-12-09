@@ -1,0 +1,25 @@
+Name:
+Special Practice Booking, NOT ALLOWED TO OVERLAP WITH ANY PRACTICE OF U12T1, U13T1
+
+Game slots:
+MO, 8:00, 2, 0
+TU, 18:00, 2, 0
+
+Practice slots:
+TU, 18:00, 2, 0
+
+Games:
+CMSA U12T1S
+CMSA U13T1S
+
+Practices:
+
+Not compatible:
+
+Unwanted:
+
+Preferences:
+
+Pair:
+
+Partial assignments:
