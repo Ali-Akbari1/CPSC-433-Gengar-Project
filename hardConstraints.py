@@ -30,10 +30,16 @@ def assign(event_index, slots_indices, schedule, set=True, DEBUG=False):
         print("event index: ", event_index)
         print("slot indices: ", slots_indices)
     # easy checks, get them out of the way
+    if not assign_helper_partassign(slots_indices, event_index, schedule):
+        if DEBUG:
+            print("Assign failed. Partassign incorrect: ", event_index, slots_indices)
+        return False
+
     if not assign_helper_contiguous(slots_indices):
         if(DEBUG):
             print("Assignment failed: slots must be contiguous. ")
         return False
+
     if not assign_helper_alignment(slots_indices, event_index):
         if(DEBUG):
             print("Assignment failed: alignment. ")
@@ -46,17 +52,16 @@ def assign(event_index, slots_indices, schedule, set=True, DEBUG=False):
         if DEBUG:
             print("Assignment failed: incompatible. ")
         return False
-    if not assign_helper_game_prac_overlap(slots_indices, event_index, schedule, DEBUG):
-        if DEBUG:
-            print("Assign failed. Practice overlaps with associated div game: ", event_index)
-        return False
     if not assign_helper_evening(slots_indices, event_index, schedule):
         if DEBUG:
             print("Assign failed. Evening class not in evening slot: ", event_index, slots_indices)
         return False
-    if not assign_helper_partassign(slots_indices, event_index, schedule):
+
+
+    # Slightly harder checks/take longer
+    if not assign_helper_special(event_index, schedule, slots_indices):
         if DEBUG:
-            print("Assign failed. Partassign incorrect: ", event_index, slots_indices)
+            print("Assign failed. Special incorrect: ", event_index, slots_indices)
         return False
 
     if not assign_helper_upper_level(slots_indices, event_index, schedule):
@@ -64,11 +69,11 @@ def assign(event_index, slots_indices, schedule, set=True, DEBUG=False):
             print("Assign failed. Upper Level incorrect: ", event_index, slots_indices)
         return False
 
-    if not assign_helper_special(event_index, schedule, slots_indices):
+    # Longest
+    if not assign_helper_game_prac_overlap(slots_indices, event_index, schedule, DEBUG):
         if DEBUG:
-            print("Assign failed. Special incorrect: ", event_index, slots_indices)
+            print("Assign failed. Practice overlaps with associated div game: ", event_index)
         return False
-
 
     # if integer, event is a game (one index)
     if(isinstance(event_index, int)):
@@ -560,23 +565,23 @@ def set_special(special_index, event_index, special_age):
 # negative = old
 # constant = evening 
 
-s_games = []
-s_practices = []
-s_slots = [[]]
-test_schedule = [s_games, s_practices, s_slots]
+# s_games = []
+# s_practices = []
+# s_slots = [[]]
+# test_schedule = [s_games, s_practices, s_slots]
 
-M = 0  # not needed, just use the number. Nice for CTRL+D changes to T or F
-T = SLOTS_PER_DAY
-F = SLOTS_PER_DAY * 2
+# M = 0  # not needed, just use the number. Nice for CTRL+D changes to T or F
+# T = SLOTS_PER_DAY
+# F = SLOTS_PER_DAY * 2
 
-# def set_test_1(s_games, s_practices, s_slots, test_schedule):
-s_games = [[1, ()], [-1000, ()]]
-s_practices = [
-        [(), ()],
-        [(), ()]
-    ]
-s_slots = m.init_slots(1,1,1,1)
-test_schedule = [s_games, s_practices, s_slots]
+# # def set_test_1(s_games, s_practices, s_slots, test_schedule):
+# s_games = [[1, ()], [-1000, ()]]
+# s_practices = [
+#         [(), ()],
+#         [(), ()]
+#     ]
+# s_slots = m.init_slots(1,1,1,1)
+# test_schedule = [s_games, s_practices, s_slots]
 
 def test(b):
     if b:

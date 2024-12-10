@@ -315,10 +315,6 @@ with open(args.filename, "r") as inputFile:
                 if pracArr[0] == 'CMSA' and pracArr[1] == 'U12T1':
                     hardConstraints.set_special(special_prac_index_U12, new_event_index, 12)
 
-            # elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
-            #     # print(pracArr)
-            #     tables["Practices:"][line] = [
-            #         tables["Games:"][subString], int(pracArr[-1])]
 
         # ####################### Parsing Not Compatible: ########################
         elif currentHeader == "Not compatible:":
@@ -327,8 +323,6 @@ with open(args.filename, "r") as inputFile:
             valid_flag = True
             #print(event1, event2, "Not compatible")
 
-            # TODO: failed ali_tests\SmallerInput1
-            # are there cases where the games in the "Not Compatible" input are not valid games?
             if event1 in tables["Games:"]:
                 event1_index = tables["Games:"][event1]
             elif event1 in tables["Practices:"]:
@@ -345,7 +339,7 @@ with open(args.filename, "r") as inputFile:
                 print("Not Compatible: EVENT NOT FOUND: ", event2) # TODO flag? ignore?
                 valid_flag = False
 
-            #print(event1_index, event2_index, "index")
+
             if valid_flag:
                 hardConstraints.set_incompatible(event1_index, event2_index)
 
@@ -356,12 +350,10 @@ with open(args.filename, "r") as inputFile:
                 game_index = tables["Games:"][eventStr]
                 hardConstraints.set_unwanted(
                     game_index, [main.get_slot_index(unwantedSplit[1], unwantedSplit[2])])
-                # print(hardConstraints.unwanted)
             if eventStr in tables["Practices:"]:
                 hardConstraints.set_unwanted(tables["Practices:"][eventStr], [
                                              main.get_slot_index(unwantedSplit[1], unwantedSplit[2])])
 
-        # Nathan
         elif currentHeader == "Partial assignments:":
             # CUSA O18 DIV 01, MO, 8:00
             # CUSA O18 DIV 01, TU, 8:00
@@ -380,14 +372,10 @@ with open(args.filename, "r") as inputFile:
             # ["CUSA O18 DIV 01", "TU", "8:00"]
             slots_indices = main.get_slot_index(lineStrip[-2], lineStrip[-1])
 
-            # TODO there should also be a template game/ practice that can take assignments.
-            #   the model init takes a game and schedule, so whereever we call that
             hardConstraints.set_partassign([slots_indices], event_index)
 
         # ------------------- Parsing Preferences -------------------
         elif currentHeader == "Preferences:":
-            # # TODO practice preferences (this is not working with our good hard contraints yet)
-            # # Example: MO, 8:00, CSSC O19T1 DIV 01, 100
             pref_parts = line.split(", ")
             day, time, event, prefValue = pref_parts
             slot_index = main.get_slot_index(day, time)
@@ -399,22 +387,31 @@ with open(args.filename, "r") as inputFile:
             continue
 
         # ------------------- Parsing Pair -------------------
-        # TODO practices too?
+
         elif currentHeader == "Pair:":
             valid_flag = True
             # Example: CMSA U12T1 DIV 01, CMSA U13T1 DIV 01
             game1, game2 = line.split(", ")
             if game1 in tables["Games:"]:
-                game1_index = tables["Games:"][game1]
+                event1_index = tables["Games:"][game1]
+
+            elif game1 in tables["Practices:"]:
+                event1_index = tables["Practices:"][game1]
+                event1_index = tuple(event1_index)
+
             else:
                 valid_flag = False
             if game2 in tables["Games:"]:
-                game2_index = tables["Games:"][game2]
+                event2_index = tables["Games:"][game2]
+
+            elif game2 in tables["Practices:"]:
+                event2_index = tables["Practices:"][game2]
+                event2_index = tuple(event2_index)
             else:
                 valid_flag = False
             
             if valid_flag:
-                pair_map[game1_index] = game2_index
+                pair_map[event1_index] = event2_index
 
         # # ------------------- Parsing Games (for Tier Map) -------------------
         # elif currentHeader == "Games:":

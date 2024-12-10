@@ -94,13 +94,6 @@ def get_slot_string(slot_index):
     min = "00" if slot_index % 2 == 0 else "30"
     return day + ", " + str(hour) + ":" + min
 
-
-
-# print("Monday: %d, %d, ..., %d. " % (get_slot_index("M", "18:00"), get_slot_index("M", "18:30"), get_slot_index("M", "20:30")))
-# print("Tuesday: %d, %d, ..., %d. " % (get_slot_index("T", "8:00"), get_slot_index("T", "8:30"), get_slot_index("T", "20:30")))
-# print("Friday: %d, %d, ..., %d. " % (get_slot_index("F", "8:00"), get_slot_index("F", "8:30"), get_slot_index("F", "20:30")))
-
-
 # ------------------------ Schedule -----------------------
 # schedule = [games, practices, slots]
 # games = [[n0, ()], [n1, ()], ..., [nk, ()]]
@@ -145,33 +138,6 @@ class StringToUniqueNumber:
 
     def get_string(self, number):
         return self.number_to_string.get(number, None)
-    
-# strs = StringToUniqueNumber()
-
-# lamb = strs.get_number("lamb")
-# beef = strs.get_number("beef")
-# duck = strs.get_number("duck")
-# print(lamb, beef, duck)
-
-# lamb = strs.get_string(lamb)
-# beef = strs.get_string(beef)
-# duck = strs.get_string(duck)
-# print(lamb, beef, duck)
-
-
-
-
-# games_names = ["are", "cool", "alphabets"]
-# games = [":are", ":cool", ":alphabets"]
-
-# zipped_gam = list(zip(games_names, games))
-# sorted_gam = sorted(zipped_gam, key=lambda x:x[0])
-
-# sorted_names, sorted_games = zip(*sorted_gam)
-# print(sorted_names)
-# print(sorted_games)
-
-
 
 def test_get_slot_with_get_slot_index():
     string = "MO, 8:00"
@@ -211,7 +177,7 @@ def set_pair_map(map_in):
 
 
 
-#################################### Testing for testing.py with some dummy values
+#################################### Testing for testing.py with some dummy values ###################
 # # needs access to game_names
 # def print_output(eval, schedule):
     

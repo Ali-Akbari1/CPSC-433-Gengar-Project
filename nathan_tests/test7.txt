@@ -9,13 +9,16 @@ MO, 11:00, 2, 0
 MO, 12:00, 2, 0
 
 Practice slots:
-
+MO, 9:00, 5, 1
+MO, 10:00, 5, 1
 
 Games:
 CMSA U13T3 DIV 01
 CMSA U13T4 DIV 02
 
 Practices:
+CMSA U13T3 DIV 01 PRC 03
+CMSA U13T4 DIV 02 PRC 03
 
 
 Not compatible:
@@ -25,6 +28,10 @@ Unwanted:
 Preferences:
 
 Pair:
-CMSA U13T4 DIV 02, CMSA U13T3 DIV 01
+CMSA U13T3 DIV 01 PRC 03, CMSA U13T4 DIV 02 PRC 03
+
+
+
+
 
 Partial assignments:

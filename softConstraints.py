@@ -27,8 +27,6 @@ def eval_min(schedule, pen_gamemin, pen_practicemin):
                 penalty += ((slot[PRAN] - num_prac_assigned) * pen_gamemin) / 2 
             else:
                 penalty += ((slot[PRAN] - num_prac_assigned) * pen_gamemin) / 4
-            #print(penalty, "penalty game min + practice min") # pen_practicemin = 20
-    #print("here eval min")
     return penalty
 
 
@@ -57,7 +55,6 @@ def eval_pref(schedule, preference_map):
 # EVAL PAIR WORKS BUT MODEL SOME TIMES DOES NOT BIAS TO BEING PAIRED
 def eval_pair(schedule, pair_map, pen_notpaired):
     penalty = 0
-    #print(pair_map)
     for event1, event2 in pair_map.items():
         # Determine the type of the first event
         if isinstance(event1, int):
@@ -80,6 +77,7 @@ def eval_pair(schedule, pair_map, pen_notpaired):
             raise ValueError(f"Invalid event type for event2: {event2}")
 
         # Compare the slots
+
         if event1_slot != event2_slot:
             penalty += pen_notpaired
 
@@ -87,7 +85,6 @@ def eval_pair(schedule, pair_map, pen_notpaired):
 
 
 
-# I THINK SEC DIFF WORKING 
 # if two teams in different divisions and same tier and age 
 def eval_secdiff(schedule, pen_section):
     penalty = 0
