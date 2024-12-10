@@ -35,7 +35,7 @@ args = inputParser.parse_args()
 flag_special_prac_U12 = False
 flag_special_prac_U13 = False
 
-def get_associated_game(prac): # TODO not working for no DIV practices
+def get_associated_game(prac): 
     return prac.subStr[0:-7]
 
 games_names = []  # games array ["CSMA U16...", "CUSA U12...", ...]
@@ -255,9 +255,8 @@ with open(args.filename, "r") as inputFile:
 
         # ####################### Parsing Practices: ########################
         if currentHeader == "Practices:":
-            # TODO open practices
+
             for i in range(len(line)):
-                # TODO yikes, we do not need to do that much work
                 # slice throught the string until we have a substring in Games
                 subString = line[:i+1]
                 # print(subString)
@@ -328,7 +327,7 @@ with open(args.filename, "r") as inputFile:
             elif event1 in tables["Practices:"]:
                 event1_index = tables["Practices:"][event1]
             else:
-                print("Not Compatible: EVENT NOT FOUND: ", event1) # TODO flag? ignore?
+                print("Not Compatible: EVENT NOT FOUND: ", event1) 
                 valid_flag = False
 
             if event2 in tables["Games:"]:
@@ -336,7 +335,7 @@ with open(args.filename, "r") as inputFile:
             elif event2 in tables["Practices:"]:
                 event2_index = tables["Practices:"][event2]
             else:
-                print("Not Compatible: EVENT NOT FOUND: ", event2) # TODO flag? ignore?
+                print("Not Compatible: EVENT NOT FOUND: ", event2) 
                 valid_flag = False
 
 
@@ -459,22 +458,6 @@ myModel = model.Model(slots, games, practices, preference_map,
                       pair_map, tier_map, weights, penalties)
 
 
-
-# print(args.gameminPenalty)
-
-# inputParser.add_argument("gameminPenalty", type=int)
-# inputParser.add_argument("practiceminPenalty", type=int)
-# inputParser.add_argument("notpairedPenalty", type=int)
-# inputParser.add_argument("sectionPenalty", type=int)
-
-# print("\nThese are test prints")
-# print(games)
-# print(practices)
-# print(slots)
-
-
-
-
 # Print the maps for debugging
 # print("Preference Map:", preference_map)
 # print("Pair Map:", pair_map)
@@ -522,8 +505,6 @@ def print_output(eval, schedule):
     for index_zip, s in enumerate(empty_list_names):  
 
         print(empty_list_names[index_zip], ":", empty_list_times[index_zip])
-
-#TODO staff meeting
 
 
 GENERATIONS = 100  #adjust this as needed

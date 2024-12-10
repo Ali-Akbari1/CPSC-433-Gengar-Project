@@ -169,7 +169,7 @@ def assign_helper_alignment(slot_indices, event_index, DEBUG=False):
             if DEBUG:
                 print("Cannot assign game to Friday slot")
             return False
-        # Friday practices are 120 mins and aligned starting 8:00 on Friday TODO not hour aligned? 
+
         elif not len(slot_indices) == 4 or not (slot_indices[0]-(SLOTS_PER_DAY*2)) % 4 == 0:
             if DEBUG:
                 print("Failed Friday practice alignment. ")
