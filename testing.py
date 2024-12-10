@@ -109,9 +109,7 @@ with open(args.filename, "r") as inputFile:
 
                         lineCopy1 = games_names[gameCounter].split()
                         if  lineCopy1[0]== 'CMSA' and lineCopy1[1] == 'U13T1':       
-
                             if flag_special_prac_U13 == False:        
-
                                 flag_special_prac_U13 = True
 
 
@@ -119,7 +117,8 @@ with open(args.filename, "r") as inputFile:
                                 practices[gameCounter].append(())
                                 prac_names[gameCounter].append('CMSA U13T1S')
 
-                                hardConstraints.set_special(special_prac_index_U13, gameCounter, 13)
+                                hardConstraints.set_partassign([46, 47], special_prac_index_U13)
+                            hardConstraints.set_special(special_prac_index_U13, gameCounter, 13)
 
                         if lineCopy1[0] == 'CMSA' and lineCopy1[1] == 'U12T1':
                             if flag_special_prac_U12 == False:
@@ -129,7 +128,8 @@ with open(args.filename, "r") as inputFile:
                                 practices[gameCounter].append(())
                                 prac_names[gameCounter].append('CMSA U12T1S')
 
-                                hardConstraints.set_special(special_prac_index_U12, gameCounter, 12)
+                                hardConstraints.set_partassign([46, 47], special_prac_index_U12)
+                            hardConstraints.set_special(special_prac_index_U12, gameCounter, 12)
 
 
                         # gameCounter is the INDEX of the game in the games array,
@@ -272,8 +272,17 @@ with open(args.filename, "r") as inputFile:
                     # add to tables for easy access later
                     
                     tables["Practices:"][line] = [associated_game_index, len(practices[associated_game_index])-1]
+                    lineCopy1 = line.split()
+
+                    
+                    if  lineCopy1[0]== 'CMSA' and lineCopy1[1] == 'U13T1':       
+                        hardConstraints.set_special(special_prac_index_U13, [associated_game_index, len(practices[associated_game_index])-1], 13)
+
+                    if lineCopy1[0] == 'CMSA' and lineCopy1[1] == 'U12T1':
+                        hardConstraints.set_special(special_prac_index_U12, [associated_game_index, len(practices[associated_game_index])-1], 12)
 
                     break
+
             pracArr = line.split()
             # case where 'DIV' was dropped, every division of this tier gets the practice
             if pracArr[-4] != "DIV":
@@ -297,6 +306,14 @@ with open(args.filename, "r") as inputFile:
                 # use the practice index, and
                 # put the list of games into open_practices
                 hardConstraints.set_open_practice(new_event_index, tier_map[game_code])
+
+
+
+                if  pracArr[0]== 'CMSA' and pracArr[1] == 'U13T1':       
+                    hardConstraints.set_special(special_prac_index_U13, new_event_index, 13)
+
+                if pracArr[0] == 'CMSA' and pracArr[1] == 'U12T1':
+                    hardConstraints.set_special(special_prac_index_U12, new_event_index, 12)
 
             # elif (pracArr[-2] == "PRC" or pracArr[-2] == "OPN"):
             #     # print(pracArr)
